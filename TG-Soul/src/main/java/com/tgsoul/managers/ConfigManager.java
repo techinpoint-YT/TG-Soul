@@ -48,10 +48,6 @@ public class ConfigManager {
         return config.getBoolean("soul.allow-revive", true);
     }
     
-    public int getRevivalRange() {
-        return config.getInt("soul.revival-token.revival-range", 10);
-    }
-    
     // Effect settings
     public boolean areEffectsEnabled() {
         return config.getBoolean("soul.effects.lose.enabled", true) || 

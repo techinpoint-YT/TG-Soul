@@ -68,15 +68,22 @@ public class PlayerInteractListener implements Listener {
         ItemStack item = event.getItemInHand();
         
         if (ItemUtil.isRevivalToken(item)) {
-            // Add the location to revival tokens
-            plugin.getSoulManager().addRevivalToken(event.getBlock().getLocation());
-            plugin.getMessageUtil().sendMessage(event.getPlayer(), "revival-token-placed");
+            String tokenOwner = ItemUtil.getRevivalTokenOwner(item);
+            String targetPlayer = ItemUtil.getRevivalTokenTarget(item);
             
-            // Check if any dead players are nearby and can be revived
-            for (org.bukkit.entity.Player nearbyPlayer : event.getPlayer().getWorld().getPlayers()) {
-                if (plugin.getSoulManager().canReviveAtToken(nearbyPlayer)) {
-                    plugin.getSoulManager().reviveAtToken(nearbyPlayer);
+            if (targetPlayer != null) {
+                // Attempt to revive the target player at this location
+                if (plugin.getSoulManager().revivePlayerAtLocation(tokenOwner, targetPlayer, event.getBlock().getLocation())) {
+                    plugin.getMessageUtil().sendMessage(event.getPlayer(), "revival-token-placed", 
+                            Map.of("player", targetPlayer));
+                } else {
+                    plugin.getMessageUtil().sendMessage(event.getPlayer(), "revive-failed", 
+                            Map.of("player", targetPlayer));
+                    event.setCancelled(true);
                 }
+            } else {
+                plugin.getMessageUtil().sendMessage(event.getPlayer(), "revival-token-no-target");
+                event.setCancelled(true);
             }
         }
     }

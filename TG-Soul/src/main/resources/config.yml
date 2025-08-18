@@ -32,15 +32,12 @@ soul:
       a11: "NETHERITE_BLOCK"
       a12: "NETHER_STAR"
       a13: "NETHERITE_BLOCK"
-      a21: "SOUL_ITEM"  # This will be replaced with the player's soul items
-      a22: "SOUL_ITEM"  # This will be replaced with the player's soul items
-      a23: "SOUL_ITEM"  # This will be replaced with the player's soul items
+      a21: "SOUL_SAND"  # This will be replaced with the target player's soul items
+      a22: "SOUL_SAND"  # This will be replaced with the target player's soul items
+      a23: "SOUL_SAND"  # This will be replaced with the target player's soul items
       a31: "NETHERITE_BLOCK"
       a32: "NETHER_STAR"
       a33: "NETHERITE_BLOCK"
-    
-    # Revival range (blocks around the beacon)
-    revival-range: 10
   
   # Particle effects (limited for 1.20 compatibility)
   effects:
@@ -86,8 +83,9 @@ messages:
   revive-success: "&a{player} has been revived with {souls} souls!"
   revive-failed: "&cRevival failed! Missing soul items for {player}."
   revive-not-needed: "&7{player} doesn't need to be revived."
-  revival-token-placed: "&aRevival Token placed! Dead players can now revive in this area."
-  revival-token-used: "&aYou have been revived by the Revival Token!"
+  revival-token-placed: "&aRevival Token placed! {player} has been revived at this location!"
+  revival-token-used: "&aYou have been revived by {reviver} using a Revival Token!"
+  revival-token-no-target: "&cThis Revival Token has no target player!"
   
   # Punishment
   banned-permanent: "&cYou have been permanently banned for losing all souls! Only admins can unban you now."

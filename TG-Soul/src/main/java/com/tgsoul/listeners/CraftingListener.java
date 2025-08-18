@@ -36,10 +36,21 @@ public class CraftingListener implements Listener {
                 event.getWhoClicked().sendMessage("§cYou must use your own souls to craft a Revival Token!");
             } else {
                 // Set the result to have the correct owner
-                ItemStack customResult = ItemUtil.createRevivalToken(event.getWhoClicked().getName());
+                String targetPlayer = getTargetPlayerFromSouls(matrix);
+                ItemStack customResult = ItemUtil.createRevivalToken(event.getWhoClicked().getName(), targetPlayer);
                 event.getInventory().setResult(customResult);
             }
         }
+    }
+    
+    private String getTargetPlayerFromSouls(ItemStack[] matrix) {
+        // Find the first soul item to determine the target player
+        for (ItemStack item : matrix) {
+            if (ItemUtil.isSoulItem(item)) {
+                return ItemUtil.getSoulOwner(item);
+            }
+        }
+        return "Unknown";
     }
     
     private boolean isValidRevivalTokenRecipe(ItemStack[] matrix, String playerName) {
@@ -52,12 +63,13 @@ public class CraftingListener implements Listener {
         // Find soul positions in the recipe
         for (int i = 0; i < positions.length; i++) {
             String materialName = recipeConfig.getString(positions[i]);
-            if ("SOUL_ITEM".equals(materialName)) {
+            if ("SOUL_SAND".equals(materialName)) {
                 soulPositions.put(positions[i], i);
             }
         }
         
-        // Check if all soul positions have the correct player's souls
+        // Check if all soul positions have soul items from the same target player
+        String targetPlayer = null;
         for (Map.Entry<String, Integer> entry : soulPositions.entrySet()) {
             int slot = entry.getValue();
             if (slot >= matrix.length) continue;
@@ -68,7 +80,10 @@ public class CraftingListener implements Listener {
             }
             
             String soulOwner = ItemUtil.getSoulOwner(item);
-            if (!playerName.equalsIgnoreCase(soulOwner)) {
+            if (targetPlayer == null) {
+                targetPlayer = soulOwner;
+            } else if (!targetPlayer.equalsIgnoreCase(soulOwner)) {
+                // All souls must be from the same player
                 return false;
             }
         }
@@ -76,7 +91,7 @@ public class CraftingListener implements Listener {
         // Validate other materials
         for (int i = 0; i < positions.length && i < matrix.length; i++) {
             String materialName = recipeConfig.getString(positions[i]);
-            if (!"SOUL_ITEM".equals(materialName)) {
+            if (!"SOUL_SAND".equals(materialName)) {
                 try {
                     Material expectedMaterial = Material.valueOf(materialName);
                     ItemStack item = matrix[i];

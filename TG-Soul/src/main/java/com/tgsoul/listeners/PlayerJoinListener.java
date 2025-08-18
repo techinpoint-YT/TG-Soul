@@ -21,12 +21,6 @@ public class PlayerJoinListener implements Listener {
         // Initialize or update player data
         PlayerSoulData data = plugin.getSoulManager().getOrCreatePlayerData(event.getPlayer());
         
-        // Check if player needs revival and is near a revival token
-        if (data.needsRevival() && plugin.getSoulManager().isNearRevivalToken(event.getPlayer().getLocation())) {
-            plugin.getSoulManager().reviveAtToken(event.getPlayer());
-            return;
-        }
-        
         // Welcome message with soul count
         plugin.getMessageUtil().sendMessage(event.getPlayer(), "souls-remaining", 
                 Map.of("souls", String.valueOf(data.getSouls())));

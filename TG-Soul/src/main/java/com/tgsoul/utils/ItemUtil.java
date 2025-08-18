@@ -16,6 +16,7 @@ public class ItemUtil {
     private static final String SOUL_ITEM_KEY = "tgsoul_owner";
     private static final String SOUL_ITEM_TYPE = "tgsoul_item";
     private static final String REVIVAL_TOKEN_KEY = "tgsoul_revival_token";
+    private static final String REVIVAL_TARGET_KEY = "tgsoul_revival_target";
     
     public static ItemStack createSoulItem(String ownerName, String materialName) {
         Material material;
@@ -53,28 +54,30 @@ public class ItemUtil {
         return item;
     }
     
-    public static ItemStack createRevivalToken(String ownerName) {
+    public static ItemStack createRevivalToken(String ownerName, String targetPlayer) {
         ItemStack item = new ItemStack(Material.BEACON);
         ItemMeta meta = item.getItemMeta();
         
         if (meta != null) {
             // Set display name
-            meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Revival Token");
+            meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Revival Token for " + targetPlayer);
             
             // Set lore
             List<String> lore = Arrays.asList(
                     ChatColor.GRAY + "Created by " + ChatColor.WHITE + ownerName,
-                    ChatColor.GRAY + "Place this beacon to create a revival area",
-                    ChatColor.GOLD + "Dead players can revive near this token"
+                    ChatColor.GRAY + "Will revive " + ChatColor.WHITE + targetPlayer,
+                    ChatColor.GOLD + "Place this beacon to revive " + targetPlayer + " at this location"
             );
             meta.setLore(lore);
             
             // Set persistent data
             NamespacedKey ownerKey = new NamespacedKey("tgsoul", SOUL_ITEM_KEY);
             NamespacedKey typeKey = new NamespacedKey("tgsoul", REVIVAL_TOKEN_KEY);
+            NamespacedKey targetKey = new NamespacedKey("tgsoul", REVIVAL_TARGET_KEY);
             
             meta.getPersistentDataContainer().set(ownerKey, PersistentDataType.STRING, ownerName);
             meta.getPersistentDataContainer().set(typeKey, PersistentDataType.STRING, "revival_token");
+            meta.getPersistentDataContainer().set(targetKey, PersistentDataType.STRING, targetPlayer);
             
             item.setItemMeta(meta);
         }
@@ -124,6 +127,17 @@ public class ItemUtil {
         NamespacedKey ownerKey = new NamespacedKey("tgsoul", SOUL_ITEM_KEY);
         
         return meta.getPersistentDataContainer().get(ownerKey, PersistentDataType.STRING);
+    }
+    
+    public static String getRevivalTokenTarget(ItemStack item) {
+        if (!isRevivalToken(item)) {
+            return null;
+        }
+        
+        ItemMeta meta = item.getItemMeta();
+        NamespacedKey targetKey = new NamespacedKey("tgsoul", REVIVAL_TARGET_KEY);
+        
+        return meta.getPersistentDataContainer().get(targetKey, PersistentDataType.STRING);
     }
     
     public static boolean isOwnedBy(ItemStack item, String playerName) {

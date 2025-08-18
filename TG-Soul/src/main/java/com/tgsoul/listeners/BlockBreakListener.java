@@ -17,8 +17,8 @@ public class BlockBreakListener implements Listener {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         if (event.getBlock().getType() == Material.BEACON) {
-            // Remove the revival token from our tracking
-            plugin.getSoulManager().removeRevivalToken(event.getBlock().getLocation());
+            // Revival tokens are consumed when placed, so no special handling needed
+            // This listener can be used for other block-related functionality if needed
         }
     }
 }

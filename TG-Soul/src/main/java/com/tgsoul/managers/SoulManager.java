@@ -25,7 +25,6 @@ public class SoulManager {
     
     private final TGSoulPlugin plugin;
     private final Map<UUID, PlayerSoulData> playerData;
-    private final Set<Location> revivalTokens;
     private final File dataFile;
     private FileConfiguration dataConfig;
     private NamespacedKey recipeKey;
@@ -33,7 +32,6 @@ public class SoulManager {
     public SoulManager(TGSoulPlugin plugin) {
         this.plugin = plugin;
         this.playerData = new ConcurrentHashMap<>();
-        this.revivalTokens = new HashSet<>();
         this.dataFile = new File(plugin.getDataFolder(), "playerdata.yml");
         this.recipeKey = new NamespacedKey(plugin, "revival_token");
         loadData();
@@ -449,7 +447,7 @@ public class SoulManager {
         }
         
         // Add result item
-        ItemStack result = ItemUtil.createRevivalToken(player.getName());
+        ItemStack result = ItemUtil.createRevivalToken(player.getName(), player.getName());
         gui.setItem(24, result); // Center slot
         
         // Add info item
@@ -501,40 +499,33 @@ public class SoulManager {
         return true;
     }
     
-    public void addRevivalToken(Location location) {
-        revivalTokens.add(location);
-    }
-    
-    public void removeRevivalToken(Location location) {
-        revivalTokens.remove(location);
-    }
-    
-    public boolean isNearRevivalToken(Location location) {
-        int range = plugin.getConfigManager().getRevivalRange();
-        
-        for (Location tokenLocation : revivalTokens) {
-            if (tokenLocation.getWorld().equals(location.getWorld()) &&
-                tokenLocation.distance(location) <= range) {
-                return true;
-            }
+    public boolean revivePlayerAtLocation(String reviverName, String targetName, Location revivalLocation) {
+        PlayerSoulData data = findPlayerDataByName(targetName);
+        if (data == null || !data.needsRevival()) {
+            return false;
         }
         
-        return false;
-    }
-    
-    public boolean canReviveAtToken(Player player) {
-        PlayerSoulData data = getPlayerData(player.getUniqueId());
-        return data != null && data.needsRevival() && isNearRevivalToken(player.getLocation());
-    }
-    
-    public void reviveAtToken(Player player) {
-        PlayerSoulData data = getOrCreatePlayerData(player);
+        // Revive the player
         data.setSouls(getMaxSouls());
         data.setNeedsRevival(false);
         savePlayerData(data);
         
-        player.setGameMode(GameMode.SURVIVAL);
-        plugin.getParticleManager().playGainEffect(player);
-        plugin.getMessageUtil().sendMessage(player, "revival-token-used");
+        // Unban if necessary
+        OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
+        if (target.isBanned()) {
+            Bukkit.getBanList(BanList.Type.NAME).pardon(targetName);
+        }
+        
+        // If player is online, teleport them to revival location and restore them
+        Player onlineTarget = Bukkit.getPlayer(targetName);
+        if (onlineTarget != null) {
+            onlineTarget.teleport(revivalLocation.add(0, 1, 0)); // Teleport above the beacon
+            onlineTarget.setGameMode(GameMode.SURVIVAL);
+            plugin.getParticleManager().playGainEffect(onlineTarget);
+            plugin.getMessageUtil().sendMessage(onlineTarget, "revival-token-used", 
+                    Map.of("reviver", reviverName));
+        }
+        
+        return true;
     }
 }
