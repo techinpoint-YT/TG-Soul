@@ -37,6 +37,10 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
         String subCommand = args[0].toLowerCase();
         
         switch (subCommand) {
+            case "help":
+                return handleHelp(sender);
+            case "recipe":
+                return handleRecipe(sender);
             case "give":
                 return handleGive(sender, args);
             case "take":
@@ -45,6 +49,8 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
                 return handleSet(sender, args);
             case "get":
                 return handleGet(sender, args);
+            case "unban":
+                return handleUnban(sender, args);
             case "reload":
                 return handleReload(sender);
             case "top":
@@ -52,7 +58,66 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
             case "stats":
                 return handleStats(sender, args);
             default:
-                sender.sendMessage("Unknown subcommand. Use: give, take, set, get, reload, top, stats");
+                return handleHelp(sender);
+        }
+    }
+    
+    private boolean handleHelp(CommandSender sender) {
+        plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-header");
+        plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-soul");
+        plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-soul-help");
+        plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-soul-recipe");
+        plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-soul-top");
+        plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-soul-stats");
+        plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-soulwithdraw");
+        
+        if (sender.hasPermission("tgsoul.admin")) {
+            plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-admin-header");
+            plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-admin-give");
+            plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-admin-take");
+            plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-admin-set");
+            plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-admin-get");
+            plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-revive");
+            plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-admin-unban");
+            plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-admin-reload");
+        }
+        
+        return true;
+    }
+    
+    private boolean handleRecipe(CommandSender sender) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("This command can only be used by players.");
+            return true;
+        }
+        
+        Player player = (Player) sender;
+        plugin.getSoulManager().openRecipeGUI(player);
+        return true;
+    }
+    
+    private boolean handleUnban(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("tgsoul.admin")) {
+            plugin.getMessageUtil().sendMessage(sender, "no-permission");
+            return true;
+        }
+        
+        if (args.length < 2) {
+            sender.sendMessage("Usage: /soul unban <player>");
+            return true;
+        }
+        
+        String targetName = args[1];
+        
+        if (plugin.getSoulManager().unbanPlayer(targetName)) {
+            plugin.getMessageUtil().sendMessage(sender, "admin-unbanned", 
+                    Map.of("player", targetName));
+        } else {
+            plugin.getMessageUtil().sendMessage(sender, "player-not-found");
+        }
+        
+        return true;
+    }
                 return true;
         }
     }
@@ -272,7 +337,7 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
         
         if (args.length == 1) {
-            List<String> subCommands = Arrays.asList("give", "take", "set", "get", "reload", "top", "stats");
+            List<String> subCommands = Arrays.asList("help", "recipe", "give", "take", "set", "get", "unban", "reload", "top", "stats");
             for (String subCommand : subCommands) {
                 if (subCommand.toLowerCase().startsWith(args[0].toLowerCase())) {
                     completions.add(subCommand);
@@ -282,6 +347,7 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
                                        args[0].equalsIgnoreCase("take") || 
                                        args[0].equalsIgnoreCase("set") || 
                                        args[0].equalsIgnoreCase("get") ||
+                                       args[0].equalsIgnoreCase("unban") ||
                                        args[0].equalsIgnoreCase("stats"))) {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 if (player.getName().toLowerCase().startsWith(args[1].toLowerCase())) {

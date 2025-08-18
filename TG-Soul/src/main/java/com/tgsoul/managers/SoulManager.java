@@ -3,14 +3,16 @@ package com.tgsoul.managers;
 import com.tgsoul.TGSoulPlugin;
 import com.tgsoul.data.PlayerSoulData;
 import com.tgsoul.utils.ItemUtil;
+import org.bukkit.*;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.BanList;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,14 +25,19 @@ public class SoulManager {
     
     private final TGSoulPlugin plugin;
     private final Map<UUID, PlayerSoulData> playerData;
+    private final Set<Location> revivalTokens;
     private final File dataFile;
     private FileConfiguration dataConfig;
+    private NamespacedKey recipeKey;
     
     public SoulManager(TGSoulPlugin plugin) {
         this.plugin = plugin;
         this.playerData = new ConcurrentHashMap<>();
+        this.revivalTokens = new HashSet<>();
         this.dataFile = new File(plugin.getDataFolder(), "playerdata.yml");
+        this.recipeKey = new NamespacedKey(plugin, "revival_token");
         loadData();
+        registerRevivalTokenRecipe();
     }
     
     public void loadData() {
@@ -300,7 +307,8 @@ public class SoulManager {
     }
     
     public ItemStack createSoulItem(String ownerName) {
-        return ItemUtil.createSoulItem(ownerName, plugin.isGeyserPresent());
+        String material = plugin.getConfigManager().getSoulMaterial();
+        return ItemUtil.createSoulItem(ownerName, material);
     }
     
     public void dropSoulItem(Player player) {
@@ -350,5 +358,183 @@ public class SoulManager {
     
     public int getMaxSouls() {
         return plugin.getConfigManager().getMaxSouls();
+    }
+    
+    private void registerRevivalTokenRecipe() {
+        // Remove existing recipe if it exists
+        try {
+            Bukkit.removeRecipe(recipeKey);
+        } catch (Exception ignored) {}
+        
+        ItemStack result = ItemUtil.createRevivalToken("System");
+        ShapedRecipe recipe = new ShapedRecipe(recipeKey, result);
+        
+        recipe.shape("ABC", "DEF", "GHI");
+        
+        ConfigurationSection recipeConfig = plugin.getConfig().getConfigurationSection("soul.revival-token.recipe");
+        if (recipeConfig != null) {
+            for (String key : recipeConfig.getKeys(false)) {
+                String materialName = recipeConfig.getString(key);
+                if ("SOUL_ITEM".equals(materialName)) {
+                    // This will be handled dynamically in crafting
+                    continue;
+                }
+                
+                try {
+                    Material material = Material.valueOf(materialName);
+                    char recipeChar = key.charAt(2); // Get the last character (1, 2, 3)
+                    recipe.setIngredient(recipeChar, material);
+                } catch (IllegalArgumentException e) {
+                    plugin.getLogger().warning("Invalid material in revival token recipe: " + materialName);
+                }
+            }
+        }
+        
+        Bukkit.addRecipe(recipe);
+    }
+    
+    public void openRecipeGUI(Player player) {
+        Inventory gui = Bukkit.createInventory(null, 54, ChatColor.translateAlternateColorCodes('&', 
+                plugin.getMessageUtil().getMessage("recipe-gui-title")));
+        
+        // Fill with glass panes
+        ItemStack glassPane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+        ItemMeta glassMeta = glassPane.getItemMeta();
+        if (glassMeta != null) {
+            glassMeta.setDisplayName(" ");
+            glassPane.setItemMeta(glassMeta);
+        }
+        
+        for (int i = 0; i < 54; i++) {
+            gui.setItem(i, glassPane);
+        }
+        
+        // Set recipe items in crafting grid pattern (slots 10-12, 19-21, 28-30)
+        int[] craftingSlots = {10, 11, 12, 19, 20, 21, 28, 29, 30};
+        ConfigurationSection recipeConfig = plugin.getConfig().getConfigurationSection("soul.revival-token.recipe");
+        
+        if (recipeConfig != null) {
+            String[] positions = {"a11", "a12", "a13", "a21", "a22", "a23", "a31", "a32", "a33"};
+            
+            for (int i = 0; i < positions.length && i < craftingSlots.length; i++) {
+                String materialName = recipeConfig.getString(positions[i]);
+                ItemStack item;
+                
+                if ("SOUL_ITEM".equals(materialName)) {
+                    item = createSoulItem(player.getName());
+                    ItemMeta meta = item.getItemMeta();
+                    if (meta != null) {
+                        List<String> lore = meta.getLore();
+                        if (lore == null) lore = new ArrayList<>();
+                        lore.add(ChatColor.YELLOW + "Use YOUR OWN souls here!");
+                        meta.setLore(lore);
+                        item.setItemMeta(meta);
+                    }
+                } else {
+                    try {
+                        Material material = Material.valueOf(materialName);
+                        item = new ItemStack(material);
+                    } catch (IllegalArgumentException e) {
+                        item = new ItemStack(Material.BARRIER);
+                        ItemMeta meta = item.getItemMeta();
+                        if (meta != null) {
+                            meta.setDisplayName(ChatColor.RED + "Invalid Material: " + materialName);
+                            item.setItemMeta(meta);
+                        }
+                    }
+                }
+                
+                gui.setItem(craftingSlots[i], item);
+            }
+        }
+        
+        // Add result item
+        ItemStack result = ItemUtil.createRevivalToken(player.getName());
+        gui.setItem(24, result); // Center slot
+        
+        // Add info item
+        ItemStack info = new ItemStack(Material.BOOK);
+        ItemMeta infoMeta = info.getItemMeta();
+        if (infoMeta != null) {
+            infoMeta.setDisplayName(ChatColor.GOLD + "Recipe Information");
+            infoMeta.setLore(Arrays.asList(
+                    ChatColor.GRAY + "Place these items in a crafting table",
+                    ChatColor.GRAY + "to create a Revival Token.",
+                    "",
+                    ChatColor.YELLOW + "Important:",
+                    ChatColor.RED + "You must use YOUR OWN souls!",
+                    ChatColor.RED + "Other players' souls won't work!"
+            ));
+            info.setItemMeta(infoMeta);
+        }
+        gui.setItem(49, info);
+        
+        player.openInventory(gui);
+    }
+    
+    public boolean unbanPlayer(String playerName) {
+        PlayerSoulData data = findPlayerDataByName(playerName);
+        if (data == null) {
+            return false;
+        }
+        
+        // Restore souls and clear revival flag
+        data.setSouls(getMaxSouls());
+        data.setNeedsRevival(false);
+        savePlayerData(data);
+        
+        // Unban the player
+        OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
+        if (target.isBanned()) {
+            Bukkit.getBanList(BanList.Type.NAME).pardon(playerName);
+        }
+        
+        // If player is online, restore them
+        Player onlineTarget = Bukkit.getPlayer(playerName);
+        if (onlineTarget != null) {
+            onlineTarget.setGameMode(GameMode.SURVIVAL);
+            plugin.getParticleManager().playGainEffect(onlineTarget);
+            plugin.getMessageUtil().sendMessage(onlineTarget, "revive-success", 
+                    Map.of("player", playerName, "souls", String.valueOf(getMaxSouls())));
+        }
+        
+        return true;
+    }
+    
+    public void addRevivalToken(Location location) {
+        revivalTokens.add(location);
+    }
+    
+    public void removeRevivalToken(Location location) {
+        revivalTokens.remove(location);
+    }
+    
+    public boolean isNearRevivalToken(Location location) {
+        int range = plugin.getConfigManager().getRevivalRange();
+        
+        for (Location tokenLocation : revivalTokens) {
+            if (tokenLocation.getWorld().equals(location.getWorld()) &&
+                tokenLocation.distance(location) <= range) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    public boolean canReviveAtToken(Player player) {
+        PlayerSoulData data = getPlayerData(player.getUniqueId());
+        return data != null && data.needsRevival() && isNearRevivalToken(player.getLocation());
+    }
+    
+    public void reviveAtToken(Player player) {
+        PlayerSoulData data = getOrCreatePlayerData(player);
+        data.setSouls(getMaxSouls());
+        data.setNeedsRevival(false);
+        savePlayerData(data);
+        
+        player.setGameMode(GameMode.SURVIVAL);
+        plugin.getParticleManager().playGainEffect(player);
+        plugin.getMessageUtil().sendMessage(player, "revival-token-used");
     }
 }

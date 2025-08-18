@@ -11,7 +11,7 @@ softdepend: [Geyser-Spigot]
 commands:
   soul:
     description: Main soul command
-    usage: /soul <subcommand>
+    usage: /soul [help|recipe|give|take|set|get|unban|reload|top|stats]
     permission: tgsoul.use
     aliases: [souls]
   soulwithdraw:

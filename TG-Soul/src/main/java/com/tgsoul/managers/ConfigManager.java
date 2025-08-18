@@ -32,6 +32,10 @@ public class ConfigManager {
         return config.getInt("soul.max", 3);
     }
     
+    public String getSoulMaterial() {
+        return config.getString("soul.material", "GHAST_TEAR");
+    }
+    
     public String getBanMode() {
         return config.getString("soul.ban-mode", "permanent");
     }
@@ -42,6 +46,10 @@ public class ConfigManager {
     
     public boolean isReviveAllowed() {
         return config.getBoolean("soul.allow-revive", true);
+    }
+    
+    public int getRevivalRange() {
+        return config.getInt("soul.revival-token.revival-range", 10);
     }
     
     // Effect settings

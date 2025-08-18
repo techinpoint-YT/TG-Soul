@@ -3,6 +3,9 @@ package com.tgsoul;
 import com.tgsoul.commands.ReviveCommand;
 import com.tgsoul.commands.SoulCommand;
 import com.tgsoul.commands.SoulWithdrawCommand;
+import com.tgsoul.listeners.BlockBreakListener;
+import com.tgsoul.listeners.CraftingListener;
+import com.tgsoul.listeners.GUIListener;
 import com.tgsoul.listeners.PlayerDeathListener;
 import com.tgsoul.listeners.PlayerInteractListener;
 import com.tgsoul.listeners.PlayerJoinListener;
@@ -71,6 +74,9 @@ public class TGSoulPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerDeathListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
+        getServer().getPluginManager().registerEvents(new GUIListener(this), this);
+        getServer().getPluginManager().registerEvents(new CraftingListener(this), this);
+        getServer().getPluginManager().registerEvents(new BlockBreakListener(this), this);
     }
     
     private void checkGeyserCompatibility() {

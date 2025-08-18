@@ -3,9 +3,12 @@ package com.tgsoul.listeners;
 import com.tgsoul.TGSoulPlugin;
 import com.tgsoul.data.PlayerSoulData;
 import com.tgsoul.utils.ItemUtil;
+import org.bukkit.GameMode;
+import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -37,7 +40,7 @@ public class PlayerInteractListener implements Listener {
         
         // Check if the soul belongs to the player
         if (!soulOwner.equalsIgnoreCase(event.getPlayer().getName())) {
-            plugin.getMessageUtil().sendMessage(event.getPlayer(), "not-your-soul");
+            plugin.getMessageUtil().sendMessage(event.getPlayer(), "wrong-soul-owner");
             event.setCancelled(true);
             return;
         }
@@ -58,5 +61,23 @@ public class PlayerInteractListener implements Listener {
         plugin.getMessageUtil().sendMessage(event.getPlayer(), "soul-consumed");
         
         event.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+        ItemStack item = event.getItemInHand();
+        
+        if (ItemUtil.isRevivalToken(item)) {
+            // Add the location to revival tokens
+            plugin.getSoulManager().addRevivalToken(event.getBlock().getLocation());
+            plugin.getMessageUtil().sendMessage(event.getPlayer(), "revival-token-placed");
+            
+            // Check if any dead players are nearby and can be revived
+            for (org.bukkit.entity.Player nearbyPlayer : event.getPlayer().getWorld().getPlayers()) {
+                if (plugin.getSoulManager().canReviveAtToken(nearbyPlayer)) {
+                    plugin.getSoulManager().reviveAtToken(nearbyPlayer);
+                }
+            }
+        }
     }
 }
