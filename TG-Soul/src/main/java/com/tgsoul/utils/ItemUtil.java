@@ -4,7 +4,9 @@ import com.tgsoul.TGSoulPlugin;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -48,6 +50,10 @@ public class ItemUtil {
             meta.getPersistentDataContainer().set(ownerKey, PersistentDataType.STRING, ownerName);
             meta.getPersistentDataContainer().set(typeKey, PersistentDataType.STRING, "soul");
             
+            // Add enchantment glow effect
+            meta.addEnchant(Enchantment.UNBREAKING, 1, true);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            
             item.setItemMeta(meta);
         }
         
@@ -78,6 +84,10 @@ public class ItemUtil {
             meta.getPersistentDataContainer().set(ownerKey, PersistentDataType.STRING, ownerName);
             meta.getPersistentDataContainer().set(typeKey, PersistentDataType.STRING, "revival_token");
             meta.getPersistentDataContainer().set(targetKey, PersistentDataType.STRING, targetPlayer);
+
+            // Add enchantment glow effect
+            meta.addEnchant(Enchantment.UNBREAKING, 1, true);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 
             item.setItemMeta(meta);
         }
