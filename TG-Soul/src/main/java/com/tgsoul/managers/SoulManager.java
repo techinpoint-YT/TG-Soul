@@ -329,7 +329,7 @@ public class SoulManager {
         ItemStack result = ItemUtil.createRevivalToken("System", "System");
         ShapedRecipe recipe = new ShapedRecipe(recipeKey, result);
         recipe.shape("ABC", "DEF", "GHI");
-        ConfigurationSection recipeConfig = plugin.getConfig().getConfigurationSection("soul.revival-token.recipe");
+        ConfigurationSection recipeConfig = plugin.getConfig().getConfigurationSection("revival-token.recipe");
         boolean hasIngredients = false;
         if (recipeConfig != null) {
             for (String key : recipeConfig.getKeys(false)) {
@@ -341,7 +341,7 @@ public class SoulManager {
                 int row = key.charAt(1) - '0';
                 int col = key.charAt(2) - '0';
                 char recipeChar = (char) ('A' + (row - 1) * 3 + (col - 1));
-                if ("SOUL_ITEM".equals(materialName)) { // Changed from SOUL_SAND
+                if ("SOUL_ITEM".equals(materialName)) {
                     String soulMaterialName = plugin.getConfigManager().getSoulMaterial();
                     try {
                         Material placeholder = Material.valueOf(soulMaterialName.toUpperCase());
@@ -394,12 +394,17 @@ public class SoulManager {
             glassPane.setItemMeta(glassMeta);
         }
         for (int i = 0; i < 54; i++) gui.setItem(i, glassPane);
+        // Define the 3x3 crafting grid slots in the GUI
         int[] craftingSlots = {10, 11, 12, 19, 20, 21, 28, 29, 30};
-        ConfigurationSection recipeConfig = plugin.getConfig().getConfigurationSection("soul.revival-token.recipe");
+        
+        // Get recipe configuration from the correct path
+        ConfigurationSection recipeConfig = plugin.getConfig().getConfigurationSection("revival-token.recipe");
         if (recipeConfig != null) {
             String[] positions = {"a11", "a12", "a13", "a21", "a22", "a23", "a31", "a32", "a33"};
             for (int i = 0; i < positions.length && i < craftingSlots.length; i++) {
                 String materialName = recipeConfig.getString(positions[i]);
+                if (materialName == null) continue;
+                
                 ItemStack item;
                 if ("SOUL_ITEM".equals(materialName)) {
                     item = createSoulItem(player.getName());

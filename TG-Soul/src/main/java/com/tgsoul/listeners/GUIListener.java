@@ -25,7 +25,7 @@ public class GUIListener implements Listener {
             // Cancel all clicks in the recipe GUI
             event.setCancelled(true);
             
-            // Close the inventory when clicked
+            // Close the inventory immediately when clicked
             event.getWhoClicked().closeInventory();
         }
     }

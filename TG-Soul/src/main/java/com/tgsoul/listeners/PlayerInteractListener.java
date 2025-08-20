@@ -74,6 +74,14 @@ public class PlayerInteractListener implements Listener {
             if (targetPlayer != null) {
                 // Attempt to revive the target player at this location
                 if (plugin.getSoulManager().revivePlayerAtLocation(tokenOwner, targetPlayer, event.getBlock().getLocation())) {
+                    // Consume the revival token from the player's inventory
+                    ItemStack handItem = event.getItemInHand();
+                    if (handItem.getAmount() > 1) {
+                        handItem.setAmount(handItem.getAmount() - 1);
+                    } else {
+                        event.getPlayer().getInventory().setItem(event.getHand(), null);
+                    }
+                    
                     plugin.getMessageUtil().sendMessage(event.getPlayer(), "revival-token-placed", 
                             Map.of("player", targetPlayer));
                 } else {

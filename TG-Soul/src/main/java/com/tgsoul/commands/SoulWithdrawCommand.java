@@ -1,10 +1,13 @@
 package com.tgsoul.commands;
 
 import com.tgsoul.TGSoulPlugin;
+import com.tgsoul.data.PlayerSoulData;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.util.Map;
 
 public class SoulWithdrawCommand implements CommandExecutor {
     
@@ -27,6 +30,14 @@ public class SoulWithdrawCommand implements CommandExecutor {
         }
         
         Player player = (Player) sender;
+        
+        // Check if player would have 0 souls after withdrawal
+        PlayerSoulData data = plugin.getSoulManager().getOrCreatePlayerData(player);
+        if (data.getSouls() <= 1) {
+            plugin.getMessageUtil().sendMessage(player, "cannot-withdraw-last-soul");
+            return true;
+        }
+        
         plugin.getSoulManager().withdrawSoul(player);
         
         return true;

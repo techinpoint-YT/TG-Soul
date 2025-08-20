@@ -26,6 +26,7 @@ spectator-mode: "&7You are now in spectator mode. Use a Revival Token to be revi
 not-your-soul: "&cThis soul doesn't belong to you!"
 max-souls: "&7You already have the maximum number of souls."
 no-souls: "&cYou don't have any souls to withdraw!"
+cannot-withdraw-last-soul: "&cYou cannot withdraw your last soul!"
 player-not-found: "&cPlayer not found!"
 invalid-amount: "&cInvalid amount!"
 wrong-soul-owner: "&cYou can only use your own souls!"
