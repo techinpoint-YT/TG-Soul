@@ -32,6 +32,7 @@ invalid-amount: "&cInvalid amount!"
 wrong-soul-owner: "&cYou can only use your own souls!"
 
 # Admin
+no-permission: "&cYou don't have permission to use this command!"
 admin-gave-souls: "&7Gave &6{amount}&7 souls to &6{player}&7."
 admin-took-souls: "&7Took &6{amount}&7 souls from &6{player}&7."
 admin-set-souls: "&7Set &6{player}'s&7 souls to &6{amount}&7."

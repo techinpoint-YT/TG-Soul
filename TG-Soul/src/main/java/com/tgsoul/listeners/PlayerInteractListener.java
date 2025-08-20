@@ -60,7 +60,6 @@ public class PlayerInteractListener implements Listener {
 
         // Add soul to player
         plugin.getSoulManager().addSouls(event.getPlayer(), 1);
-        plugin.getMessageUtil().sendMessage(event.getPlayer(), "soul-consumed");
 
         event.setCancelled(true);
     }

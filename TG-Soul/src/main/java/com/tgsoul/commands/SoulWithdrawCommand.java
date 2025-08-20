@@ -31,14 +31,21 @@ public class SoulWithdrawCommand implements CommandExecutor {
         
         Player player = (Player) sender;
         
-        // Check if player would have 0 souls after withdrawal
-        PlayerSoulData data = plugin.getSoulManager().getOrCreatePlayerData(player);
-        if (data.getSouls() <= 1) {
-            plugin.getMessageUtil().sendMessage(player, "cannot-withdraw-last-soul");
-            return true;
+        try {
+            // Check if player would have 0 souls after withdrawal
+            PlayerSoulData data = plugin.getSoulManager().getOrCreatePlayerData(player);
+            if (data.getSouls() <= 1) {
+                plugin.getMessageUtil().sendMessage(player, "cannot-withdraw-last-soul");
+                return true;
+            }
+            
+            plugin.getSoulManager().withdrawSoul(player);
+            
+        } catch (Exception e) {
+            plugin.getLogger().severe("Error in soulwithdraw command: " + e.getMessage());
+            e.printStackTrace();
+            player.sendMessage("§cAn error occurred while withdrawing soul. Please try again.");
         }
-        
-        plugin.getSoulManager().withdrawSoul(player);
         
         return true;
     }

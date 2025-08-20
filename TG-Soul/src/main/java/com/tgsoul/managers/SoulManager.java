@@ -237,6 +237,7 @@ public class SoulManager {
         savePlayerData(data); // Save after change
         saveToFile(); // Ensure file is updated
         plugin.getParticleManager().playGainEffect(player);
+        SoundUtil.playSound(player, plugin.getConfigManager().getGainSound());
         plugin.getMessageUtil().sendMessage(player, "soul-gained", Map.of("souls", String.valueOf(newAmount)));
     }
 
@@ -262,6 +263,7 @@ public class SoulManager {
         if (onlineTarget != null) {
             onlineTarget.setGameMode(GameMode.SURVIVAL);
             plugin.getParticleManager().playGainEffect(onlineTarget);
+            SoundUtil.playSound(onlineTarget, plugin.getConfigManager().getRevivalSound());
             plugin.getMessageUtil().sendMessage(onlineTarget, "revive-success",
                     Map.of("player", targetName, "souls", String.valueOf(getMaxSouls())));
         }
@@ -490,6 +492,7 @@ public class SoulManager {
         if (onlineTarget != null) {
             onlineTarget.setGameMode(GameMode.SURVIVAL);
             plugin.getParticleManager().playGainEffect(onlineTarget);
+            SoundUtil.playSound(onlineTarget, plugin.getConfigManager().getRevivalSound());
             plugin.getMessageUtil().sendMessage(onlineTarget, "revive-success",
                     Map.of("player", playerName, "souls", String.valueOf(getMaxSouls())));
         } else {
@@ -515,11 +518,12 @@ public class SoulManager {
             onlineTarget.teleport(revivalLocation.add(0, 1, 0));
             onlineTarget.setGameMode(GameMode.SURVIVAL);
             plugin.getParticleManager().playGainEffect(onlineTarget);
+            SoundUtil.playSound(onlineTarget, plugin.getConfigManager().getRevivalSound());
             plugin.getMessageUtil().sendMessage(onlineTarget, "revival-token-used", Map.of("reviver", reviverName));
         } else {
             plugin.getLogger().info("Player " + targetName + " is offline, revival data updated but no teleport/effects applied.");
         }
-        SoundUtil.playSoundAtLocation(revivalLocation, plugin.getConfigManager().getRevivalSound());  // Add this line
+        SoundUtil.playSoundAtLocation(revivalLocation, plugin.getConfigManager().getRevivalSound());
         return true;
     }
 
