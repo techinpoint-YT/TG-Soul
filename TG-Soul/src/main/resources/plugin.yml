@@ -12,7 +12,7 @@ softdepend: [Geyser]
 commands:
   soul:
     description: Main soul command
-    usage: /<command> [help|recipe|give|take|set|get|unban|reload|top|stats] [player|amount]
+    usage: /<command> [help|recipe|give|take|set|get|unban|reload|top|stats|pack] [player|amount]
     permission: tgsoul.use
     aliases: [souls]
   soulwithdraw:
@@ -20,10 +20,6 @@ commands:
     usage: /<command>
     permission: tgsoul.withdraw
     aliases: [sw]
-  revive:
-    description: Revive a player using their souls
-    usage: /<command> <player>
-    permission: tgsoul.revive
 
 permissions:
   tgsoul.*:
@@ -31,7 +27,6 @@ permissions:
     children:
       tgsoul.use: true
       tgsoul.withdraw: true
-      tgsoul.revive: true
       tgsoul.admin: true
   tgsoul.use:
     description: Basic soul commands
@@ -39,13 +34,9 @@ permissions:
   tgsoul.withdraw:
     description: Withdraw souls as items
     default: true
-  tgsoul.revive:
-    description: Revive other players
-    default: op
   tgsoul.admin:
     description: Admin soul commands
     default: op
     children:
       tgsoul.use: true
       tgsoul.withdraw: true
-      tgsoul.revive: true

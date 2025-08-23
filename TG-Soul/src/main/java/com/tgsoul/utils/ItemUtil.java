@@ -1,6 +1,7 @@
 package com.tgsoul.utils;
 
 import com.tgsoul.TGSoulPlugin;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -13,6 +14,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 public class ItemUtil {
     
@@ -20,6 +22,7 @@ public class ItemUtil {
     private static final String SOUL_ITEM_TYPE = "tgsoul_item";
     private static final String REVIVAL_TOKEN_KEY = "tgsoul_revival_token";
     private static final String REVIVAL_TARGET_KEY = "tgsoul_revival_target";
+    private static final String CUSTOM_MODEL_DATA_KEY = "tgsoul_custom_model_data";
     
     public static ItemStack createSoulItem(String ownerName, String materialName) {
         Material material;
@@ -50,6 +53,64 @@ public class ItemUtil {
             
             meta.getPersistentDataContainer().set(ownerKey, PersistentDataType.STRING, ownerName);
             meta.getPersistentDataContainer().set(typeKey, PersistentDataType.STRING, "soul");
+            
+            // Check if resource pack is set and apply CustomModelData
+            if (!Bukkit.getServer().getResourcePack().isEmpty()) {
+                Random random = new Random();
+                int customModelData = random.nextInt(10) + 1; // 1-10
+                meta.setCustomModelData(customModelData);
+                
+                // Store CustomModelData in persistent data for consistency
+                NamespacedKey cmdKey = new NamespacedKey("tgsoul", CUSTOM_MODEL_DATA_KEY);
+                meta.getPersistentDataContainer().set(cmdKey, PersistentDataType.INTEGER, customModelData);
+            }
+            
+            // Add enchantment glow effect
+            meta.addEnchant(Enchantment.UNBREAKING, 1, true);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            
+            item.setItemMeta(meta);
+        }
+        
+        return item;
+    }
+
+    public static ItemStack createSoulItemWithCustomModelData(String ownerName, String materialName, int customModelData) {
+        Material material;
+        try {
+            material = Material.valueOf(materialName.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            material = Material.GHAST_TEAR; // Default fallback
+        }
+        
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        
+        if (meta != null) {
+            // Set display name
+            meta.setDisplayName(ChatColor.GOLD + ownerName + " Soul");
+            
+            // Set lore
+            List<String> lore = Arrays.asList(
+                    ChatColor.GRAY + "A soul belonging to " + ChatColor.WHITE + ownerName,
+                    ChatColor.GRAY + "Right-click to consume (if yours)",
+                    ChatColor.DARK_GRAY + "Use 3 of these in Revival Token recipe"
+            );
+            meta.setLore(lore);
+            
+            // Set persistent data
+            NamespacedKey ownerKey = new NamespacedKey("tgsoul", SOUL_ITEM_KEY);
+            NamespacedKey typeKey = new NamespacedKey("tgsoul", SOUL_ITEM_TYPE);
+            NamespacedKey cmdKey = new NamespacedKey("tgsoul", CUSTOM_MODEL_DATA_KEY);
+            
+            meta.getPersistentDataContainer().set(ownerKey, PersistentDataType.STRING, ownerName);
+            meta.getPersistentDataContainer().set(typeKey, PersistentDataType.STRING, "soul");
+            meta.getPersistentDataContainer().set(cmdKey, PersistentDataType.INTEGER, customModelData);
+            
+            // Apply CustomModelData if resource pack is present
+            if (!Bukkit.getServer().getResourcePack().isEmpty()) {
+                meta.setCustomModelData(customModelData);
+            }
             
             // Add enchantment glow effect
             meta.addEnchant(Enchantment.UNBREAKING, 1, true);
@@ -131,6 +192,17 @@ public class ItemUtil {
         NamespacedKey ownerKey = new NamespacedKey("tgsoul", SOUL_ITEM_KEY);
         
         return meta.getPersistentDataContainer().get(ownerKey, PersistentDataType.STRING);
+    }
+    
+    public static Integer getSoulCustomModelData(ItemStack item) {
+        if (!isSoulItem(item)) {
+            return null;
+        }
+        
+        ItemMeta meta = item.getItemMeta();
+        NamespacedKey cmdKey = new NamespacedKey("tgsoul", CUSTOM_MODEL_DATA_KEY);
+        
+        return meta.getPersistentDataContainer().get(cmdKey, PersistentDataType.INTEGER);
     }
     
     public static String getRevivalTokenOwner(ItemStack item) {

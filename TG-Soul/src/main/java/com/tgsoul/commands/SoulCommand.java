@@ -46,6 +46,7 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
             case "reload" -> handleReload(sender);
             case "top" -> handleTop(sender, args);
             case "stats" -> handleStats(sender, args);
+            case "pack" -> handlePack(sender, args);
             default -> {
                 handleHelp(sender);
                 yield false;
@@ -61,7 +62,6 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
         plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-soul-top");
         plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-soul-stats");
         plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-soulwithdraw");
-        plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-revive");
         if (sender.hasPermission("tgsoul.admin")) {
             plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-admin-header");
             plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-admin-give");
@@ -70,6 +70,7 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
             plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-admin-get");
             plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-admin-reload");
             plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-admin-unban");
+            plugin.getMessageUtil().sendMessageWithoutPrefix(sender, "help-admin-pack");
         }
         return true;
     }
@@ -105,6 +106,12 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
             int amount = Integer.parseInt(args[2]);
             if (amount < 1) {
                 sender.sendMessage("Amount must be positive.");
+                return true;
+            }
+
+            PlayerSoulData data = plugin.getSoulManager().getOrCreatePlayerData(target);
+            if (data.getSouls() + amount > plugin.getSoulManager().getMaxSouls()) {
+                sender.sendMessage("§cPlayer already has maximum no of Souls");
                 return true;
             }
 
@@ -213,10 +220,23 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
         }
 
         String playerName = args[1];
+        Player target = Bukkit.getPlayer(playerName);
+        
         if (plugin.getSoulManager().unbanPlayer(playerName)) {
             sender.sendMessage("§aUnbanned and revived §6" + playerName + "§a.");
         } else {
-            sender.sendMessage("§cPlayer not found or not banned.");
+            // If player is not banned but has < max souls, set to max
+            if (target != null) {
+                PlayerSoulData data = plugin.getSoulManager().getOrCreatePlayerData(target);
+                if (data.getSouls() < plugin.getSoulManager().getMaxSouls()) {
+                    plugin.getSoulManager().setSouls(target, plugin.getSoulManager().getMaxSouls());
+                    sender.sendMessage("§aSet §6" + playerName + "§a's souls to maximum.");
+                } else {
+                    sender.sendMessage("§cPlayer not found or not banned, and already has maximum souls.");
+                }
+            } else {
+                sender.sendMessage("§cPlayer not found or not banned.");
+            }
         }
 
         return true;
@@ -301,12 +321,47 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private boolean handlePack(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("tgsoul.admin")) {
+            plugin.getMessageUtil().sendMessage(sender, "no-permission");
+            return true;
+        }
+
+        if (args.length < 3) {
+            sender.sendMessage("Usage: /soul pack <player> <CustomModelData>");
+            return false;
+        }
+
+        Player target = Bukkit.getPlayer(args[1]);
+        if (target == null) {
+            plugin.getMessageUtil().sendMessage(sender, "player-not-found");
+            return true;
+        }
+
+        try {
+            int customModelData = Integer.parseInt(args[2]);
+            if (customModelData < 1 || customModelData > 10) {
+                sender.sendMessage("§cCustomModelData must be between 1 and 10.");
+                return true;
+            }
+
+            // Set the player's CustomModelData
+            plugin.getSoulManager().setPlayerCustomModelData(target.getUniqueId(), customModelData);
+            
+            sender.sendMessage("§aSet §6" + target.getName() + "§a's soul CustomModelData to §6" + customModelData + "§a.");
+        } catch (NumberFormatException e) {
+            sender.sendMessage("§cInvalid CustomModelData. Must be a number between 1 and 10.");
+        }
+
+        return true;
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            List<String> subCommands = Arrays.asList("help", "recipe", "give", "take", "set", "get", "unban", "reload", "top", "stats");
+            List<String> subCommands = Arrays.asList("help", "recipe", "give", "take", "set", "get", "unban", "reload", "top", "stats", "pack");
             for (String subCommand : subCommands) {
                 if (subCommand.toLowerCase().startsWith(args[0].toLowerCase())) {
                     completions.add(subCommand);
@@ -317,11 +372,16 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
                 args[0].equalsIgnoreCase("set") ||
                 args[0].equalsIgnoreCase("get") ||
                 args[0].equalsIgnoreCase("unban") ||
-                args[0].equalsIgnoreCase("stats"))) {
+                args[0].equalsIgnoreCase("stats") ||
+                args[0].equalsIgnoreCase("pack"))) {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 if (player.getName().toLowerCase().startsWith(args[1].toLowerCase())) {
                     completions.add(player.getName());
                 }
+            }
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("pack")) {
+            for (int i = 1; i <= 10; i++) {
+                completions.add(String.valueOf(i));
             }
         }
 

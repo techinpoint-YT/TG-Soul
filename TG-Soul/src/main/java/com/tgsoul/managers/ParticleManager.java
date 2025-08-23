@@ -23,9 +23,9 @@ public class ParticleManager {
         Location location = player.getLocation().add(0, 1, 0);
 
         if (plugin.getVersionUtil().isVersion121OrHigher()) {
-            playAdvancedLoseEffect(player, location);
+            playDustPillarEffect(player, location, true); // true for lose effect
         } else {
-            playBasicLoseEffect(player, location);
+            playLegacyLoseEffect(player, location);
         }
     }
 
@@ -37,75 +37,62 @@ public class ParticleManager {
         Location location = player.getLocation().add(0, 1, 0);
 
         if (plugin.getVersionUtil().isVersion121OrHigher()) {
-            playAdvancedGainEffect(player, location);
+            playDustPillarEffect(player, location, false); // false for gain effect
         } else {
-            playBasicGainEffect(player, location);
+            playLegacyGainEffect(player, location);
         }
     }
 
-    private void playBasicLoseEffect(Player player, Location location) {
+    private void playLegacyLoseEffect(Player player, Location location) {
         try {
-            String particleName = plugin.getConfigManager().getLoseParticle();
-            Particle particle = Particle.valueOf(particleName);
-            int count = getAdjustedParticleCount(player, plugin.getConfigManager().getLoseParticleCount());
+            // Use smoke for 1.10-1.20 via ViaBackwards
+            Particle particle = Particle.SMOKE;
+            int count = getAdjustedParticleCount(player, 20);
             player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, 0.1);
         } catch (IllegalArgumentException e) {
-            plugin.getLogger().warning("Invalid particle name in config: " + plugin.getConfigManager().getLoseParticle() + ". Falling back to SMOKE.");
+            plugin.getLogger().warning("Failed to spawn smoke particle. Falling back to default.");
             int count = getAdjustedParticleCount(player, 20);
             player.spawnParticle(Particle.SMOKE, location, count, 0.5, 0.5, 0.5, 0.1);
         }
     }
 
-    private void playBasicGainEffect(Player player, Location location) {
+    private void playLegacyGainEffect(Player player, Location location) {
         try {
-            String particleName = plugin.getConfigManager().getGainParticle();
-            Particle particle = Particle.valueOf(particleName);
-            int count = getAdjustedParticleCount(player, plugin.getConfigManager().getGainParticleCount());
+            // Use happy_villager for 1.10-1.20 via ViaBackwards
+            Particle particle = Particle.HAPPY_VILLAGER;
+            int count = getAdjustedParticleCount(player, 15);
             player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, 0.1);
         } catch (IllegalArgumentException e) {
-            plugin.getLogger().warning("Invalid particle name in config: " + plugin.getConfigManager().getGainParticle() + ". Falling back to HAPPY_VILLAGER.");
+            plugin.getLogger().warning("Failed to spawn happy_villager particle. Falling back to default.");
             int count = getAdjustedParticleCount(player, 15);
             player.spawnParticle(Particle.HAPPY_VILLAGER, location, count, 0.5, 0.5, 0.5, 0.1);
         }
     }
 
-    private void playAdvancedLoseEffect(Player player, Location location) {
+    private void playDustPillarEffect(Player player, Location location, boolean isLoseEffect) {
         try {
-            String particleName = plugin.getConfigManager().getAdvancedLoseParticle();
-            Particle particle = Particle.valueOf(particleName);
-
-            if (particle == Particle.DUST) {
-                Color color = parseColor(plugin.getConfigManager().getAdvancedLoseColor());
-                double size = plugin.getConfigManager().getAdvancedParticleSize();
-                Particle.DustOptions dustOptions = new Particle.DustOptions(color, (float) size);
-
-                int count = getAdjustedParticleCount(player, 20);
-                player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, 0, dustOptions);
-            } else {
-                playBasicLoseEffect(player, location);
-            }
+            // Use dust_pillar (mace smash particle) for 1.21+
+            Particle particle = Particle.DUST_PILLAR;
+            
+            // Get color based on effect type
+            String colorHex = isLoseEffect ? 
+                plugin.getConfigManager().getAdvancedLoseColor() : 
+                plugin.getConfigManager().getAdvancedGainColor();
+            Color color = parseColor(colorHex);
+            double size = plugin.getConfigManager().getAdvancedParticleSize();
+            
+            // Create dust options for the pillar effect
+            Particle.DustOptions dustOptions = new Particle.DustOptions(color, (float) size);
+            
+            int count = getAdjustedParticleCount(player, isLoseEffect ? 20 : 15);
+            player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, 0, dustOptions);
         } catch (Exception e) {
-            playBasicLoseEffect(player, location);
-        }
-    }
-
-    private void playAdvancedGainEffect(Player player, Location location) {
-        try {
-            String particleName = plugin.getConfigManager().getAdvancedGainParticle();
-            Particle particle = Particle.valueOf(particleName);
-
-            if (particle == Particle.DUST) {
-                Color color = parseColor(plugin.getConfigManager().getAdvancedGainColor());
-                double size = plugin.getConfigManager().getAdvancedParticleSize();
-                Particle.DustOptions dustOptions = new Particle.DustOptions(color, (float) size);
-
-                int count = getAdjustedParticleCount(player, 15);
-                player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, 0, dustOptions);
+            // Fallback to legacy effects if dust_pillar is not available
+            if (isLoseEffect) {
+                playLegacyLoseEffect(player, location);
             } else {
-                playBasicGainEffect(player, location);
+                playLegacyGainEffect(player, location);
             }
-        } catch (Exception e) {
-            playBasicGainEffect(player, location);
         }
     }
 

@@ -22,9 +22,15 @@ public class PlayerDeathListener implements Listener {
         PlayerSoulData data = plugin.getSoulManager().getOrCreatePlayerData(event.getEntity());
         plugin.getSoulManager().removeSouls(event.getEntity(), 1);
         plugin.getSoulManager().dropSoulItem(event.getEntity());
-        int remainingSouls = data.getSouls(); // Use updated value
+        
+        // Get updated soul count after removal
+        PlayerSoulData updatedData = plugin.getSoulManager().getOrCreatePlayerData(event.getEntity());
+        int remainingSouls = updatedData.getSouls();
+        
         String deathMessage = plugin.getMessageUtil().getMessage("death-message",
                 Map.of("player", event.getEntity().getName(), "souls", String.valueOf(remainingSouls)));
+        
+        // Set death message only once to prevent double messages
         event.setDeathMessage(deathMessage);
     }
 }

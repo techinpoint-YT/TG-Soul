@@ -1,6 +1,5 @@
 package com.tgsoul;
 
-import com.tgsoul.commands.ReviveCommand;
 import com.tgsoul.commands.SoulCommand;
 import com.tgsoul.commands.SoulWithdrawCommand;
 import com.tgsoul.listeners.BlockBreakListener;
@@ -78,7 +77,6 @@ public class TGSoulPlugin extends JavaPlugin {
     private void registerCommands() {
         getCommand("soul").setExecutor(new SoulCommand(this));
         getCommand("soulwithdraw").setExecutor(new SoulWithdrawCommand(this));
-        getCommand("revive").setExecutor(new ReviveCommand(this));
     }
 
     private void registerListeners() {
