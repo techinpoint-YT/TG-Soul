@@ -5,13 +5,10 @@ import com.tgsoul.data.PlayerSoulData;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
@@ -21,98 +18,66 @@ import java.util.UUID;
 public class SoulBarManager {
 
     private final TGSoulPlugin plugin;
-    private final Map<UUID, Integer> playerSoulLevels = new HashMap<>();
-    private final Map<UUID, BossBar> playerSoulBars = new HashMap<>();
+    private final Map<UUID, BossBar> playerBossBars = new HashMap<>();
     private final Map<UUID, BukkitTask> updateTasks = new HashMap<>();
-
-    private int activeSoulCustomModelData;
-    private int inactiveSoulCustomModelData;
 
     public SoulBarManager(TGSoulPlugin plugin) {
         this.plugin = plugin;
-        refreshCustomModelData();
     }
 
-    // Method to refresh CustomModelData from config
     public void refreshCustomModelData() {
-        this.activeSoulCustomModelData = plugin.getConfigManager().getActiveSoulCustomModelData();
-        this.inactiveSoulCustomModelData = plugin.getConfigManager().getInactiveSoulCustomModelData();
+        // Method kept for compatibility but not needed for HUD functionality
     }
 
     public void updateSoulBar(Player player) {
-        UUID uuid = player.getUniqueId();
-        PlayerSoulData data = plugin.getSoulManager().getPlayerData(uuid);
-        if (data == null) {
-            plugin.getLogger().warning("No soul data found for player: " + player.getName());
+        if (player == null || !player.isOnline()) {
             return;
         }
 
+        PlayerSoulData data = plugin.getSoulManager().getOrCreatePlayerData(player);
         int currentSouls = data.getSouls();
         int maxSouls = plugin.getConfigManager().getMaxSouls();
 
-        // Store the soul level for HUD rendering
-        playerSoulLevels.put(uuid, currentSouls);
+        // Update absorption hearts based on soul count
+        double absorptionAmount = Math.min(currentSouls * 2.0, 20.0); // 2 hearts per soul, max 20
+        player.setAbsorptionAmount(absorptionAmount);
 
-        // Calculate active and inactive portions
-        int activeSouls = Math.min(currentSouls, maxSouls);
-        int inactiveSouls = Math.max(0, maxSouls - currentSouls);
-
-        // Scale absorption hearts to reflect the proportion of active souls
-        double totalHearts = 20.0; // Max 20 half-hearts
-        double activeHearts = (double) activeSouls / maxSouls * totalHearts;
-        player.setAbsorptionAmount(Math.min(activeHearts, totalHearts));
-
-        // Check if HUD is globally enabled
-        if (!isHudEnabled()) {
+        // Check if HUD is enabled
+        if (!plugin.getConfigManager().isHudEnabled()) {
             return;
         }
 
-        // Get HUD type from config
-        String hudType = getHudType();
+        String hudType = plugin.getConfigManager().getHudType().toLowerCase();
 
-        switch (hudType.toLowerCase()) {
+        switch (hudType) {
             case "actionbar":
-                if (plugin.getConfigManager().isActionBarEnabled()) {
-                    sendActionBarSoulDisplay(player, activeSouls, maxSouls);
-                }
+                updateActionBar(player, currentSouls, maxSouls);
                 break;
             case "bossbar":
-                if (plugin.getConfigManager().isBossBarEnabled()) {
-                    updateSoulBarWithBossBar(player, currentSouls, maxSouls);
-                }
+                updateBossBar(player, currentSouls, maxSouls);
                 break;
             case "both":
-                if (plugin.getConfigManager().isActionBarEnabled()) {
-                    sendActionBarSoulDisplay(player, activeSouls, maxSouls);
-                }
-                if (plugin.getConfigManager().isBossBarEnabled()) {
-                    updateSoulBarWithBossBar(player, currentSouls, maxSouls);
-                }
-                break;
-            case "custom":
-                sendCustomHUDPacket(player, activeSouls, inactiveSouls);
+                updateActionBar(player, currentSouls, maxSouls);
+                updateBossBar(player, currentSouls, maxSouls);
                 break;
             default:
-                // Default to action bar if invalid type (and actionbar is enabled)
-                if (plugin.getConfigManager().isActionBarEnabled()) {
-                    sendActionBarSoulDisplay(player, activeSouls, maxSouls);
-                }
+                // Default to action bar
+                updateActionBar(player, currentSouls, maxSouls);
                 break;
         }
 
         // Start continuous updates if enabled
         startContinuousUpdate(player);
-
-        plugin.getLogger().info("Updated soul bar for " + player.getName() + ": " +
-                activeSouls + "/" + maxSouls + " souls");
     }
 
-    private void sendActionBarSoulDisplay(Player player, int activeSouls, int maxSouls) {
-        if (!isHudEnabled() || !plugin.getConfigManager().isActionBarEnabled()) return;
+    private void updateActionBar(Player player, int currentSouls, int maxSouls) {
+        if (!plugin.getConfigManager().isActionBarEnabled()) {
+            return;
+        }
 
         StringBuilder soulBar = new StringBuilder();
 
-        // Get colors and symbols from config
+        // Get configuration values
         String titleColor = plugin.getConfigManager().getActionBarTitleColor();
         String activeColor = plugin.getConfigManager().getActionBarActiveColor();
         String inactiveColor = plugin.getConfigManager().getActionBarInactiveColor();
@@ -120,161 +85,153 @@ public class SoulBarManager {
         String inactiveSymbol = plugin.getConfigManager().getActionBarInactiveSymbol();
         boolean showNumbers = plugin.getConfigManager().isActionBarNumbersEnabled();
 
-        // Add title
+        // Build the soul display
         soulBar.append(titleColor).append("Souls: ");
 
-        // Add active souls (filled hearts)
-        for (int i = 0; i < activeSouls; i++) {
+        // Add active souls (filled symbols)
+        for (int i = 0; i < currentSouls; i++) {
             soulBar.append(activeColor).append(activeSymbol);
         }
 
-        // Add inactive souls (empty hearts)
-        for (int i = activeSouls; i < maxSouls; i++) {
+        // Add inactive souls (empty symbols)
+        for (int i = currentSouls; i < maxSouls; i++) {
             soulBar.append(inactiveColor).append(inactiveSymbol);
         }
 
-        // Add soul count if enabled
+        // Add numbers if enabled
         if (showNumbers) {
-            soulBar.append(" §f(").append(activeSouls).append("/").append(maxSouls).append(")");
+            soulBar.append(" §f(").append(currentSouls).append("/").append(maxSouls).append(")");
         }
 
-        // Send to action bar (appears above hotbar)
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+        // Send to action bar
+        try {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, 
                 new TextComponent(soulBar.toString()));
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to send action bar to " + player.getName() + ": " + e.getMessage());
+        }
     }
 
-    private void updateSoulBarWithBossBar(Player player, int currentSouls, int maxSouls) {
-        if (!isHudEnabled() || !plugin.getConfigManager().isBossBarEnabled()) {
-            // If bossbar is disabled, remove any existing bossbar
-            removeBossBarForPlayer(player);
+    private void updateBossBar(Player player, int currentSouls, int maxSouls) {
+        if (!plugin.getConfigManager().isBossBarEnabled()) {
+            removeBossBar(player);
             return;
         }
 
         UUID uuid = player.getUniqueId();
 
         // Remove existing boss bar
-        BossBar existingBar = playerSoulBars.get(uuid);
+        BossBar existingBar = playerBossBars.get(uuid);
         if (existingBar != null) {
             existingBar.removePlayer(player);
+            existingBar.removeAll();
         }
 
-        // Create new boss bar
-        double progress = maxSouls > 0 ? (double) currentSouls / maxSouls : 0.0;
+        // Calculate progress (0.0 to 1.0)
+        double progress = maxSouls > 0 ? Math.max(0.0, Math.min(1.0, (double) currentSouls / maxSouls)) : 0.0;
+
+        // Create title with placeholders
         String title = plugin.getConfigManager().getBossBarTitleFormat()
                 .replace("%current%", String.valueOf(currentSouls))
                 .replace("%max%", String.valueOf(maxSouls));
 
-        BossBar soulBar = Bukkit.createBossBar(
+        // Create new boss bar
+        BossBar bossBar = Bukkit.createBossBar(
                 title,
                 getBossBarColor(currentSouls, maxSouls),
                 BarStyle.SEGMENTED_10
         );
 
-        soulBar.setProgress(Math.max(0.0, Math.min(1.0, progress)));
-        soulBar.addPlayer(player);
+        bossBar.setProgress(progress);
+        bossBar.addPlayer(player);
+        bossBar.setVisible(true);
 
-        playerSoulBars.put(uuid, soulBar);
-    }
-
-    private void removeBossBarForPlayer(Player player) {
-        UUID uuid = player.getUniqueId();
-        BossBar bossBar = playerSoulBars.get(uuid);
-        if (bossBar != null) {
-            bossBar.removePlayer(player);
-            playerSoulBars.remove(uuid);
-        }
+        playerBossBars.put(uuid, bossBar);
     }
 
     private BarColor getBossBarColor(int currentSouls, int maxSouls) {
-        double ratio = maxSouls > 0 ? (double) currentSouls / maxSouls : 0.0;
+        if (maxSouls == 0) return BarColor.RED;
+        
+        double ratio = (double) currentSouls / maxSouls;
 
-        if (ratio > 0.7) {
-            return BarColor.valueOf(plugin.getConfigManager().getBossBarHighColor());
-        } else if (ratio > 0.4) {
-            return BarColor.valueOf(plugin.getConfigManager().getBossBarMediumColor());
-        } else if (ratio > 0.2) {
-            return BarColor.valueOf(plugin.getConfigManager().getBossBarLowColor());
-        } else {
-            return BarColor.valueOf(plugin.getConfigManager().getBossBarCriticalColor());
-        }
-    }
-
-    private void sendCustomHUDPacket(Player player, int activeSouls, int inactiveSouls) {
-        // Custom resource pack HUD implementation
-        // This uses CustomModelData to trigger different HUD textures
-
-        ItemStack hudItem = new ItemStack(Material.STICK);
-        ItemMeta meta = hudItem.getItemMeta();
-
-        if (meta != null) {
-            // Calculate HUD model data based on soul count
-            int hudModelData = activeSoulCustomModelData + activeSouls;
-            meta.setCustomModelData(hudModelData);
-            hudItem.setItemMeta(meta);
-
-            // Note: This requires a custom resource pack and possibly ProtocolLib
-            // to properly render as HUD. For now, this sets up the data structure.
-            plugin.getLogger().fine("Custom HUD data set for " + player.getName() +
-                    ": CMD " + hudModelData);
+        try {
+            if (ratio > 0.7) {
+                return BarColor.valueOf(plugin.getConfigManager().getBossBarHighColor().toUpperCase());
+            } else if (ratio > 0.4) {
+                return BarColor.valueOf(plugin.getConfigManager().getBossBarMediumColor().toUpperCase());
+            } else if (ratio > 0.2) {
+                return BarColor.valueOf(plugin.getConfigManager().getBossBarLowColor().toUpperCase());
+            } else {
+                return BarColor.valueOf(plugin.getConfigManager().getBossBarCriticalColor().toUpperCase());
+            }
+        } catch (IllegalArgumentException e) {
+            plugin.getLogger().warning("Invalid boss bar color in config, using default RED");
+            return BarColor.RED;
         }
     }
 
     private void startContinuousUpdate(Player player) {
-        if (!isContinuousUpdateEnabled()) return;
+        if (!plugin.getConfigManager().isContinuousUpdateEnabled()) {
+            return;
+        }
 
         UUID uuid = player.getUniqueId();
 
         // Cancel existing task
         BukkitTask existingTask = updateTasks.get(uuid);
-        if (existingTask != null) {
+        if (existingTask != null && !existingTask.isCancelled()) {
             existingTask.cancel();
         }
 
         // Start new update task
-        int updateInterval = getUpdateInterval() * 20; // Convert seconds to ticks
+        int updateInterval = plugin.getConfigManager().getHudUpdateInterval() * 20; // Convert to ticks
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             if (player.isOnline()) {
                 updateSoulBar(player);
             } else {
-                // Player offline, cancel task
-                updateTasks.remove(uuid);
-                BukkitTask currentTask = updateTasks.get(uuid);
-                if (currentTask != null) {
-                    currentTask.cancel();
-                }
+                // Player offline, cleanup
+                stopContinuousUpdate(player);
             }
         }, updateInterval, updateInterval);
 
         updateTasks.put(uuid, task);
     }
 
+    private void stopContinuousUpdate(Player player) {
+        UUID uuid = player.getUniqueId();
+        BukkitTask task = updateTasks.remove(uuid);
+        if (task != null && !task.isCancelled()) {
+            task.cancel();
+        }
+    }
+
     public void removeSoulBar(Player player) {
         UUID uuid = player.getUniqueId();
 
-        // Remove soul level tracking
-        playerSoulLevels.remove(uuid);
+        // Stop continuous updates
+        stopContinuousUpdate(player);
 
         // Remove boss bar
-        removeBossBarForPlayer(player);
+        removeBossBar(player);
 
-        // Cancel update task
-        BukkitTask task = updateTasks.get(uuid);
-        if (task != null) {
-            task.cancel();
-            updateTasks.remove(uuid);
+        // Clear action bar
+        try {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(""));
+        } catch (Exception e) {
+            // Ignore errors when clearing action bar
         }
 
         // Reset absorption
         player.setAbsorptionAmount(0.0);
-        player.setCustomName(null);
-        player.setCustomNameVisible(false);
+    }
 
-        // Clear action bar
-        if (plugin.getConfigManager().isActionBarEnabled()) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(""));
+    private void removeBossBar(Player player) {
+        UUID uuid = player.getUniqueId();
+        BossBar bossBar = playerBossBars.remove(uuid);
+        if (bossBar != null) {
+            bossBar.removePlayer(player);
+            bossBar.removeAll();
         }
-
-        plugin.getLogger().info("Removed soul bar for " + player.getName());
     }
 
     public void updateAllSoulBars() {
@@ -283,55 +240,22 @@ public class SoulBarManager {
         }
     }
 
-    // Configuration helper methods
-    private boolean isHudEnabled() {
-        return plugin.getConfigManager().isHudEnabled();
-    }
-
-    private String getHudType() {
-        return plugin.getConfigManager().getHudType();
-    }
-
-    private boolean isContinuousUpdateEnabled() {
-        return plugin.getConfigManager().isContinuousUpdateEnabled();
-    }
-
-    private int getUpdateInterval() {
-        return plugin.getConfigManager().getHudUpdateInterval();
-    }
-
-    // Getter methods
-    public int getPlayerSoulLevel(UUID uuid) {
-        return playerSoulLevels.getOrDefault(uuid, 0);
-    }
-
-    public int getActiveSoulCustomModelData() {
-        return activeSoulCustomModelData;
-    }
-
-    public int getInactiveSoulCustomModelData() {
-        return inactiveSoulCustomModelData;
-    }
-
     /**
-     * Cleanup method for plugin disable
+     * Called when plugin is disabled
      */
     public void shutdown() {
         // Cancel all update tasks
         for (BukkitTask task : updateTasks.values()) {
-            if (task != null) {
+            if (task != null && !task.isCancelled()) {
                 task.cancel();
             }
         }
         updateTasks.clear();
 
         // Remove all boss bars
-        for (BossBar bossBar : playerSoulBars.values()) {
+        for (BossBar bossBar : playerBossBars.values()) {
             bossBar.removeAll();
         }
-        playerSoulBars.clear();
-
-        // Clear tracking data
-        playerSoulLevels.clear();
+        playerBossBars.clear();
     }
 }
