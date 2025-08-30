@@ -1,0 +1,200 @@
+##########################################################################
+# ████████╗ ██████╗        ██████╗ ██████╗  ██╗   ██╗ ██╗                #
+# ╚══██╔══╝██╔════╝       ██╔════╝██╔═══██╗ ██║   ██║ ██║                #
+#    ██║   ██║  ███╗      ╚█████╗ ██║   ██║ ██║   ██║ ██║                #
+#    ██║   ██║   ██║       ╚═══██╗██║   ██║ ██║   ██║ ██║                #
+#    ██║   ╚██████╔╝      ██████╔╝╚██████╔╝ ╚██████╔╝ ███████╗           #
+#    ╚═╝    ╚═════╝       ╚═════╝  ╚═════╝   ╚═════╝  ╚══════╝           #
+#                   Developed By: Prabin (Techinpoint Gamerz)            #
+#                   Youtube: www.youtube.com/@TechinpointGamerz          #
+##########################################################################
+
+# TGSoul Configuration
+# Plugin by TGSoul - Compatible with MC 1.20-1.21.8 and GeyserMC
+
+soul:
+  # Manage Sounds (Paper 1.21.1 compatible)
+  # Use minecraft sound names without the "minecraft:" prefix
+  sounds:
+    revival: "block.end_portal.spawn"     # Sound when using Revival Token
+    withdraw: "entity.wither.spawn"       # Sound when withdrawing a soul
+    gain: "entity.ender_dragon.growl"     # Sound when gaining a soul
+
+  # Starting soul count for new players (tracked in playerdata.yml, not items given on join)
+  starting-souls: 3
+
+  # Maximum number of souls a player can have
+  max: 10
+
+  # Material used for soul items (both Java and Bedrock)
+  material: "GHAST_TEAR"
+
+  # What happens when a player reaches 0 souls
+  # Options: permanent, temp, spectator
+  ban-mode: "permanent"
+
+  # Ban duration (only used if ban-mode is "temp")
+  # Format: 1d, 7d, 1h, 30m, etc.
+  ban-time: "7d"
+
+  # Allow players to be revived using Revival Token
+  allow-revive: true
+
+  # Drop soul on mob death (if false, souls only drop on PvP/environmental deaths)
+  drop-on-mob-death: false
+
+  # Soul HUD Configuration
+  hud:
+    # Enable/disable the soul HUD display
+    enabled: true
+    
+    # HUD display type
+    # Options: actionbar, bossbar, both, custom
+    # actionbar: Shows souls above hotbar (above hunger bar)
+    # bossbar: Shows souls as boss bar at top of screen
+    # both: Shows both actionbar and bossbar
+    # custom: Uses CustomModelData for resource pack integration
+    type: "actionbar"
+    
+    # Position (currently only affects actionbar type)
+    # Options: above-hunger, center, custom
+    position: "above-hunger"
+    
+    # Continuous updates (updates HUD every few seconds)
+    continuous-update: true
+    
+    # Update interval in seconds (only used if continuous-update is true)
+    update-interval: 2
+    
+    # Visual settings for action bar
+    actionbar:
+      # Enable/disable actionbar HUD specifically
+      enabled: true
+      # Show soul count numbers alongside hearts
+      show-numbers: true
+      # Color for active souls
+      active-color: "§c"  # Red
+      # Color for inactive souls
+      inactive-color: "§7"  # Gray
+      # Color for title text
+      title-color: "§6"  # Gold
+      # Custom symbols (use Unicode hearts or custom characters)
+      symbols:
+        active: "❤"    # Filled heart
+        inactive: "♡"  # Empty heart
+
+    # Visual settings for boss bar
+    bossbar:
+      # Enable/disable bossbar HUD specifically
+      enabled: true
+      # Boss bar title format
+      title-format: "§6Souls: %current%/%max%"
+      # Color progression based on soul percentage
+      colors:
+        high: "GREEN"    # >70% souls
+        medium: "YELLOW" # 40-70% souls  
+        low: "RED"       # 20-40% souls
+        critical: "PURPLE" # <20% souls
+
+  # Revival Token Configuration
+  revival-token:
+    # Enable/disable revival token system
+    enabled: true
+
+    # Material for the Revival Token
+    material: "BEACON"
+
+    # Recipe pattern (3 lines representing the 3x3 crafting grid)
+    pattern:
+      - "ABC" #a11 a12 a13
+      - "DEF" #a21 a22 a23
+      - "GHI" #a31 a32 a33
+
+    # Recipe ingredients (3x3 grid positions: a11=top-left, a33=bottom-right)
+    # Use "SOUL_ITEM" as a placeholder for positions requiring the player's own soul items
+    recipe:
+      a11: "PAPER"           # Top-left
+      a12: "SOUL_ITEM"       # Top-center
+      a13: "PAPER"           # Top-right
+      a21: "SOUL_ITEM"       # Middle-left
+      a22: "NETHER_STAR"     # Middle-center
+      a23: "SOUL_ITEM"       # Middle-right
+      a31: "NETHERITE_BLOCK" # Bottom-left
+      a32: "NETHER_STAR"     # Bottom-center
+      a33: "NETHERITE_BLOCK" # Bottom-right
+
+  # Soul CustomModelData system
+  custom-model-data:
+    enabled: true      # Enable CustomModelData system for soul item textures
+    default: 0         # Default CMD for fallback (0 = no custom model)
+    min: 1             # Minimum CMD for random assignment on first join
+    max: 10            # Maximum CMD for random assignment on first join
+    active-soul-cmd: 30 # CustomModelData for active souls (configurable, e.g., light segments)
+    inactive-soul-cmd: 999 # CustomModelData for inactive/dark souls (configurable, e.g., dark segments)
+
+  # Particle effects - Fixed version with compatible particles
+  effects:
+    lose:
+      enabled: true
+      # Primary particles - Using compatible particles for all MC versions
+      particles:
+        - type: "SMOKE_LARGE"              # Dark smoke particles (compatible with all versions)
+          count: 15
+          offset: [0.5, 0.5, 0.5]
+          speed: 0.1
+        - type: "DUST"                     # Red dust particles for soul loss
+          count: 20
+          offset: [0.5, 0.5, 0.5]
+          speed: 0.0
+          color: "#FF0000"                 # Red color
+          size: 1.0
+        - type: "FALLING_DUST"             # Gray dust particles
+          count: 10
+          offset: [0.5, 0.5, 0.5]
+          speed: 0.5
+          data: "STONE"                    # Block data for FALLING_DUST
+    gain:
+      enabled: true
+      # Primary particles - Using compatible particles
+      particles:
+        - type: "HAPPY_VILLAGER"           # Green sparkles (corrected from VILLAGER_HAPPY)
+          count: 15
+          offset: [0.5, 0.5, 0.5]
+          speed: 0.1
+        - type: "sonic_boom"
+          count: 20
+          offset: [0.5, 0.5, 0.5]
+          speed: 0.0
+        - type: "trial_spawner_detection_ominous"                     # Cyan dust particles
+          count: 15
+          offset: [0.5, 0.5, 0.5]
+          speed: 0.0
+          color: "#00FFFF"                 # Cyan color
+          size: 1.2
+        # Alternative if you meant FALLING_DUST instead of DUST:
+        # - type: "FALLING_DUST"
+        #   count: 15
+        #   offset: [0.5, 0.5, 0.5]
+        #   speed: 0.5
+        #   data: "STONE"
+
+# Database settings
+database:
+  type: "yaml"  # Currently only YAML supported
+  auto-save: true
+  save-interval: 300  # seconds
+
+# GeyserMC compatibility
+geyser:
+  # Enable special handling for Bedrock players
+  enabled: true
+
+  # Custom item handling for Bedrock clients
+  bedrock-items:
+    # Use same material for both Java and Bedrock
+    soul-item: "GHAST_TEAR"
+
+  # Particle adjustments for Bedrock
+  bedrock-particles:
+    # Reduce particle count for better performance on mobile
+    multiplier: 0.5
