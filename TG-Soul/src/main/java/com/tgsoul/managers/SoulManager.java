@@ -360,6 +360,12 @@ public class SoulManager {
     public ItemStack createSoulItem(String ownerName) {
         String material = plugin.getConfigManager().getSoulMaterial();
 
+        // Check if CustomModelData is supported in this version
+        if (!plugin.getVersionUtil().supportsCustomModelData()) {
+            plugin.getLogger().warning("CustomModelData not supported in this Minecraft version. Using default soul items.");
+            return ItemUtil.createSoulItem(ownerName, material, 0);
+        }
+
         // Find the player's UUID to get their CustomModelData
         UUID playerUUID = null;
         for (Map.Entry<UUID, PlayerSoulData> entry : playerData.entrySet()) {

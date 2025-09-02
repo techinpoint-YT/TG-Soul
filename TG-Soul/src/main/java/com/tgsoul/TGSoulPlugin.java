@@ -52,7 +52,12 @@ public class TGSoulPlugin extends JavaPlugin {
         recipeManager.registerRecipes();
 
         // Register soul item models for resource pack compatibility
-        ItemUtil.registerSoulModels();
+        if (versionUtil.supportsCustomModelData()) {
+            ItemUtil.registerSoulModels();
+            getLogger().info("CustomModelData support enabled for soul items.");
+        } else {
+            getLogger().warning("CustomModelData not supported in this Minecraft version. Soul variants disabled.");
+        }
 
         // GeyserMC check
         checkGeyserCompatibility();

@@ -372,6 +372,12 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        // Check if CustomModelData is supported
+        if (!plugin.getVersionUtil().supportsCustomModelData()) {
+            sender.sendMessage("§cCustomModelData is not supported in this Minecraft version (requires 1.14-1.21.1).");
+            return true;
+        }
+
         if (args.length < 3) {
             sender.sendMessage("Usage: /soul pack <player> <CustomModelData>");
             return false;

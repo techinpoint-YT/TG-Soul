@@ -70,7 +70,15 @@ public class ItemUtil {
             }
             
             // Add enchantment glow effect
-            meta.addEnchant(Enchantment.UNBREAKING, 1, true);
+            try {
+                Enchantment unbreaking = Registry.ENCHANTMENT.get(NamespacedKey.minecraft("unbreaking"));
+                if (unbreaking != null) {
+                    meta.addEnchant(unbreaking, 1, true);
+                }
+            } catch (Exception e) {
+                // Fallback for older versions
+                meta.addEnchant(Enchantment.UNBREAKING, 1, true);
+            }
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             
             item.setItemMeta(meta);

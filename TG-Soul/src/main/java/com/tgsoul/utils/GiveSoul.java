@@ -23,6 +23,12 @@ public class GiveSoul {
             return;
         }
 
+        // Check if CustomModelData is supported
+        if (!plugin.getVersionUtil().supportsCustomModelData()) {
+            plugin.getLogger().info("CustomModelData not supported - using default soul items for " + player.getName());
+            return;
+        }
+
         String materialName = plugin.getConfigManager().getSoulMaterial();
         Material material = Material.matchMaterial(materialName);
         if (material == null) {

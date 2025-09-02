@@ -58,6 +58,10 @@ public class ConfigManager {
 
     // --- CustomModelData Configuration ---
     public boolean isCustomModelDataEnabled() { return config.getBoolean("soul.custom-model-data.enabled", true); }
+    public boolean isCustomModelDataSupported() {
+        TGSoulPlugin plugin = TGSoulPlugin.getInstance();
+        return plugin != null && plugin.getVersionUtil().supportsCustomModelData();
+    }
     public int getDefaultCustomModelData() { return config.getInt("soul.custom-model-data.default", 0); }
     public int getMinCustomModelData() { return config.getInt("soul.custom-model-data.min", 1); }
     public int getMaxCustomModelData() { return config.getInt("soul.custom-model-data.max", 10); }

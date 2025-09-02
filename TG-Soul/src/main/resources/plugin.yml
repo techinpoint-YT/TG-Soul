@@ -1,7 +1,7 @@
 name: TGSoul
 version: '${project.version}'
 main: com.tgsoul.TGSoulPlugin
-api-version: '1.21.8'
+api-version: '1.21'
 authors: [Prabin (TG)]
 description: A comprehensive soul system plugin for Minecraft.
 Check out our YouTube: www.youtube.com/@TechinpointGamerz

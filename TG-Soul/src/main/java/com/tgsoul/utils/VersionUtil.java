@@ -46,11 +46,23 @@ public class VersionUtil {
     }
     
     public boolean isVersionSupported() {
-        // Support 1.20.x to 1.21.x
-        return majorVersion == 1 && minorVersion >= 20 && minorVersion <= 21;
+        // Support 1.20.x to 1.21.1 (resource pack compatibility limit)
+        return majorVersion == 1 && minorVersion >= 20 && 
+               (minorVersion < 21 || (minorVersion == 21 && getSubVersion() <= 1));
+    }
+    
+    private int getSubVersion() {
+        String[] parts = version.split("\\.");
+        return parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
     }
     
     public boolean supportsAdvancedParticles() {
-        return isVersion121OrHigher();
+        return isVersion121OrHigher() && isVersionSupported();
+    }
+    
+    public boolean supportsCustomModelData() {
+        // CustomModelData works reliably up to 1.21.1
+        return majorVersion == 1 && minorVersion >= 14 && 
+               (minorVersion < 21 || (minorVersion == 21 && getSubVersion() <= 1));
     }
 }
