@@ -11,7 +11,7 @@ A comprehensive soul system plugin for Minecraft servers that adds a unique surv
 - **Revival System**: Players can be revived using Revival Tokens crafted from soul items
 
 ### Advanced Features
-- **Custom Model Data Support**: Soul items support custom textures via resource packs (MC 1.14-1.21.1)
+- **Custom Model Data Support**: Soul items support custom textures via resource packs (MC 1.14-1.21.8)
 - **Particle Effects**: Customizable particle effects for soul gain/loss events
 - **Sound Effects**: Configurable sounds for various soul-related actions
 - **GUI System**: Interactive recipe viewer for Revival Tokens
@@ -19,12 +19,12 @@ A comprehensive soul system plugin for Minecraft servers that adds a unique surv
 
 ### Cross-Platform Compatibility
 - **GeyserMC Support**: Full compatibility with Bedrock Edition players
-- **Version Support**: Minecraft 1.20.x to 1.21.1
+- **Version Support**: Minecraft 1.20.x to 1.21.8
 - **Performance Optimized**: Efficient data handling and particle management
 
 ## 📋 Requirements
 
-- **Minecraft Version**: 1.20.x to 1.21.1
+- **Minecraft Version**: 1.20.x to 1.21.8
 - **Server Software**: Paper, Purpur, or other Paper-based servers
 - **Java Version**: 17 or higher
 - **Optional**: GeyserMC for Bedrock Edition support
@@ -99,7 +99,7 @@ TGSoul supports custom soul item textures through CustomModelData:
 2. Use CustomModelData values 1-10 for different soul variants
 3. Players are automatically assigned random variants on first join
 
-**Note**: CustomModelData support is limited to Minecraft 1.14-1.21.1 due to resource pack compatibility.
+**Note**: CustomModelData support is available for Minecraft 1.14-1.21.8. The plugin automatically detects version compatibility.
 
 ## 🌐 GeyserMC Integration
 
@@ -145,7 +145,7 @@ Customizable particle effects for:
 ## 🐛 Troubleshooting
 
 ### Common Issues
-1. **Resource Pack Not Working**: Ensure you're using MC 1.21.1 or earlier
+1. **Resource Pack Not Working**: Ensure you're using MC 1.21.8 or earlier
 2. **Particles Not Showing**: Check if effects are enabled in config.yml
 3. **Souls Not Saving**: Verify file permissions for playerdata.yml
 4. **Commands Not Working**: Check permissions and plugin load order
@@ -170,10 +170,10 @@ Customizable particle effects for:
 ## 📝 Version History
 
 ### v1.0.3
-- Fixed resource pack compatibility for MC 1.21.1+
-- Improved CustomModelData handling
-- Enhanced GeyserMC support
-- Performance optimizations
+- Extended resource pack compatibility to MC 1.21.8
+- Improved version detection and compatibility checking
+- Enhanced CustomModelData handling for newer versions
+- Performance optimizations and better error handling
 
 ---
 

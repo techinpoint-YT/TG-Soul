@@ -229,9 +229,20 @@ public class ItemUtil {
      * This method can be called during plugin initialization
      */
     public static void registerSoulModels() {
-        // This is a placeholder for future resource pack integration
-        // In a full implementation, this would register all CMD variants
-        // For now, we just log the available models
-        TGSoulPlugin.getInstance().getLogger().info("Soul item models registered: Default (CMD:0) + Variants 1-10");
+        TGSoulPlugin plugin = TGSoulPlugin.getInstance();
+        if (plugin == null) return;
+        
+        // Log available models with version info
+        plugin.getLogger().info("Soul item models registered for MC " + plugin.getVersionUtil().getVersion() + ":");
+        plugin.getLogger().info("- Default Soul (CustomModelData: 0)");
+        
+        int minCmd = plugin.getConfigManager().getMinCustomModelData();
+        int maxCmd = plugin.getConfigManager().getMaxCustomModelData();
+        plugin.getLogger().info("- Soul Variants (CustomModelData: " + minCmd + "-" + maxCmd + ")");
+        
+        // Verify resource pack compatibility
+        if (plugin.getVersionUtil().hasCustomModelDataIssues()) {
+            plugin.getLogger().warning("Known CustomModelData issues detected in this version!");
+        }
     }
 }

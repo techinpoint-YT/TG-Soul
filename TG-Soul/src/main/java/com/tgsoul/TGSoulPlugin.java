@@ -35,6 +35,7 @@ public class TGSoulPlugin extends JavaPlugin {
         instance = this;
         versionUtil = new VersionUtil();
         getLogger().info("Detected Minecraft version: " + versionUtil.getVersion());
+        getLogger().info(versionUtil.getCompatibilityMessage());
 
         // Initialize managers in correct order
         configManager = new ConfigManager(this);
@@ -54,9 +55,10 @@ public class TGSoulPlugin extends JavaPlugin {
         // Register soul item models for resource pack compatibility
         if (versionUtil.supportsCustomModelData()) {
             ItemUtil.registerSoulModels();
-            getLogger().info("CustomModelData support enabled for soul items.");
+            getLogger().info("CustomModelData support enabled for soul items (MC " + versionUtil.getVersion() + ").");
         } else {
-            getLogger().warning("CustomModelData not supported in this Minecraft version. Soul variants disabled.");
+            getLogger().warning("CustomModelData not supported in MC " + versionUtil.getVersion() + ". Soul variants disabled.");
+            getLogger().warning("For resource pack support, use Minecraft 1.20.x - 1.21.8");
         }
 
         // GeyserMC check
@@ -66,7 +68,7 @@ public class TGSoulPlugin extends JavaPlugin {
         setupAutoSave();
 
         getLogger().info("TGSoul has been enabled successfully!");
-        getLogger().info("Compatible with MC " + versionUtil.getVersion() +
+        getLogger().info("Running on MC " + versionUtil.getVersion() +
                 (isGeyserPresent() ? " with GeyserMC support" : ""));
     }
 

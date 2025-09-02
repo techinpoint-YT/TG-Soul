@@ -25,7 +25,8 @@ public class GiveSoul {
 
         // Check if CustomModelData is supported
         if (!plugin.getVersionUtil().supportsCustomModelData()) {
-            plugin.getLogger().info("CustomModelData not supported - using default soul items for " + player.getName());
+            plugin.getLogger().info("CustomModelData not supported in MC " + plugin.getVersionUtil().getVersion() + 
+                " - using default soul items for " + player.getName());
             return;
         }
 

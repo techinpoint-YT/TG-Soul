@@ -362,7 +362,8 @@ public class SoulManager {
 
         // Check if CustomModelData is supported in this version
         if (!plugin.getVersionUtil().supportsCustomModelData()) {
-            plugin.getLogger().warning("CustomModelData not supported in this Minecraft version. Using default soul items.");
+            plugin.getLogger().info("CustomModelData not supported in MC " + plugin.getVersionUtil().getVersion() + 
+                ". Using default soul items for " + ownerName);
             return ItemUtil.createSoulItem(ownerName, material, 0);
         }
 

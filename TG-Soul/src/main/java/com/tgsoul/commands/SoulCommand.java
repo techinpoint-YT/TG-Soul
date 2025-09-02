@@ -374,7 +374,8 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
 
         // Check if CustomModelData is supported
         if (!plugin.getVersionUtil().supportsCustomModelData()) {
-            sender.sendMessage("§cCustomModelData is not supported in this Minecraft version (requires 1.14-1.21.1).");
+            sender.sendMessage("§cCustomModelData is not supported in this Minecraft version.");
+            sender.sendMessage("§cSupported versions: 1.20.x - 1.21.8 (Current: " + plugin.getVersionUtil().getVersion() + ")");
             return true;
         }
 
