@@ -1,0 +1,31 @@
+{
+  "display": {
+    "icon": {
+      "item": "minecraft:beacon"
+    },
+    "title": {
+      "text": "Soul Savior",
+      "color": "light_purple"
+    },
+    "description": {
+      "text": "Revive another player using a Revival Token"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "revive_player": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "block": "minecraft:beacon",
+        "item": {
+          "nbt": "{tgsoul_item:\"revival_token\"}"
+        }
+      }
+    }
+  },
+  "rewards": {
+    "experience": 50
+  }
+}
