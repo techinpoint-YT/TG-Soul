@@ -1,0 +1,165 @@
+package com.tgsoul;
+
+import com.tgsoul.commands.SoulCommand;
+import com.tgsoul.commands.SoulWithdrawCommand;
+import com.tgsoul.listeners.BlockBreakListener;
+import com.tgsoul.listeners.CraftingListener;
+import com.tgsoul.listeners.GUIListener;
+import com.tgsoul.listeners.PlayerDeathListener;
+import com.tgsoul.listeners.PlayerInteractListener;
+import com.tgsoul.listeners.PlayerJoinListener;
+import com.tgsoul.managers.ConfigManager;
+import com.tgsoul.managers.ParticleManager;
+import com.tgsoul.managers.RecipeManager;
+import com.tgsoul.managers.SoulManager;
+import com.tgsoul.managers.SoulBarManager; // Add this import
+import com.tgsoul.utils.MessageUtil;
+import com.tgsoul.utils.VersionUtil;
+import com.tgsoul.utils.ItemUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+
+public class TGSoulPlugin extends JavaPlugin {
+
+    private static TGSoulPlugin instance;
+    private SoulManager soulManager;
+    private ConfigManager configManager;
+    private ParticleManager particleManager;
+    private RecipeManager recipeManager;
+    private MessageUtil messageUtil;
+    private VersionUtil versionUtil;
+    private SoulBarManager soulBarManager; // Add this field
+
+    @Override
+    public void onEnable() {
+        instance = this;
+        versionUtil = new VersionUtil();
+        getLogger().info("Detected Minecraft version: " + versionUtil.getVersion());
+
+        // Initialize managers in correct order
+        configManager = new ConfigManager(this);
+        configManager.loadConfig();
+        messageUtil = new MessageUtil(this);
+        particleManager = new ParticleManager(this);
+        soulManager = new SoulManager(this);
+        recipeManager = new RecipeManager(this);
+        soulBarManager = new SoulBarManager(this); // Initialize SoulBarManager
+
+        // Register commands & listeners
+        registerCommands();
+        registerListeners();
+
+        // Register recipes
+        recipeManager.registerRecipes();
+
+        // Register soul item models for resource pack compatibility
+        ItemUtil.registerSoulModels();
+
+        // GeyserMC check
+        checkGeyserCompatibility();
+
+        // Setup auto-save if enabled
+        setupAutoSave();
+
+        getLogger().info("TGSoul has been enabled successfully!");
+        getLogger().info("Compatible with MC " + versionUtil.getVersion() +
+                (isGeyserPresent() ? " with GeyserMC support" : ""));
+    }
+
+    @Override
+    public void onDisable() {
+        // Cancel all tasks FIRST to prevent new async operations
+        getServer().getScheduler().cancelTasks(this);
+
+        if (soulManager != null) {
+            try {
+                soulManager.shutdown();
+                getLogger().info("Player data saved on disable.");
+            } catch (Exception e) {
+                getLogger().severe("Failed to save player data on disable: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        // Clean up soul bars
+        if (soulBarManager != null) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                soulBarManager.removeSoulBar(player); // Updated from removeBars
+            }
+        }
+
+        getLogger().info("TGSoul has been disabled!");
+    }
+
+    private void setupAutoSave() {
+        if (configManager.isAutoSaveEnabled()) {
+            int saveInterval = configManager.getSaveInterval() * 20; // Convert seconds to ticks
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    soulManager.saveAllData();
+                }
+            }.runTaskTimer(this, saveInterval, saveInterval);
+            getLogger().info("Auto-save enabled with interval of " + configManager.getSaveInterval() + " seconds.");
+        }
+    }
+
+    private void registerCommands() {
+        getCommand("soul").setExecutor(new SoulCommand(this));
+        getCommand("soulwithdraw").setExecutor(new SoulWithdrawCommand(this));
+    }
+
+    private void registerListeners() {
+        getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerDeathListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
+        getServer().getPluginManager().registerEvents(new GUIListener(this), this);
+        getServer().getPluginManager().registerEvents(new CraftingListener(this), this);
+        getServer().getPluginManager().registerEvents(new BlockBreakListener(this), this);
+    }
+
+    private void checkGeyserCompatibility() {
+        if (isGeyserPresent()) {
+            getLogger().info("GeyserMC detected! Enabling Bedrock compatibility features.");
+        }
+    }
+
+    public boolean isGeyserPresent() {
+        return getServer().getPluginManager().getPlugin("Geyser-Spigot") != null;
+    }
+
+    // Getters
+    public static TGSoulPlugin getInstance() {
+        return instance;
+    }
+
+    public SoulManager getSoulManager() {
+        return soulManager;
+    }
+
+    public ConfigManager getConfigManager() {
+        return configManager;
+    }
+
+    public ParticleManager getParticleManager() {
+        return particleManager;
+    }
+
+    public RecipeManager getRecipeManager() {
+        return recipeManager;
+    }
+
+    public MessageUtil getMessageUtil() {
+        return messageUtil;
+    }
+
+    public VersionUtil getVersionUtil() {
+        return versionUtil;
+    }
+
+    public SoulBarManager getSoulBarManager() { // Add this getter
+        return soulBarManager;
+    }
+}
