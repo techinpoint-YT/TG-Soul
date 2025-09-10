@@ -1,17 +1,29 @@
 # TGSoul Datapack
 
-A comprehensive soul system datapack for Minecraft 1.21 to 1.21.8, converted from the original TGSoul plugin.
+A comprehensive soul system datapack for Minecraft 1.21 to 1.21.8, converted from the original TGSoul plugin by Prabin (Techinpoint Gamerz).
 
 ## Features
 
 - **Soul System**: Players start with 3 souls and can have up to 10 souls maximum
-- **Death Mechanics**: Lose souls on death (configurable for PvP only or all deaths)
-- **Soul Items**: Souls drop as items that can be picked up and consumed
+- **Death Mechanics**: Lose souls on death (PvP only by default, configurable)
+- **Soul Items**: Souls drop as ghast tears that can be picked up and consumed
 - **Revival System**: Craft Revival Tokens to revive players who lost all souls
 - **HUD Display**: Action bar shows current soul count with visual hearts
 - **Spectator Mode**: Players with 0 souls are put in spectator mode until revived
 - **Particle Effects**: Visual and audio feedback for gaining/losing souls
 - **Advancements**: Achievement system for soul milestones
+
+## Default Configuration (from Plugin)
+
+- **Starting Souls**: 3
+- **Maximum Souls**: 10
+- **Soul Material**: Ghast Tear
+- **Revival Token Material**: Beacon
+- **Ban Mode**: Spectator mode (permanent equivalent)
+- **Soul Loss**: PvP only (drop-on-mob-death: false)
+- **HUD**: Action bar enabled with heart symbols
+- **Effects**: Enabled with particle and sound effects
+- **Revival**: Allowed with Revival Tokens
 
 ## Installation
 
@@ -24,28 +36,35 @@ A comprehensive soul system datapack for Minecraft 1.21 to 1.21.8, converted fro
 
 Since this is a datapack, commands are function calls:
 
-- `/function tgsoul:commands/soul_stats` - Check your soul count
+### Player Commands
+- `/function tgsoul:commands/soul_stats` - Check your soul count and stats
 - `/function tgsoul:commands/soul_withdraw` - Withdraw a soul as an item
-- `/function tgsoul:commands/soul_top` - View top players
+- `/function tgsoul:commands/soul_top` - View top players by souls
 - `/function tgsoul:commands/soul_help` - Show help information
 
 ### Admin Commands
-
-- `/function tgsoul:admin/give_souls` - Give souls to a player (run as target)
-- `/function tgsoul:admin/revive_player` - Revive a player (run as target)
-- `/function tgsoul:admin/set_max_souls` - Set maximum souls
+- `/execute as <player> run function tgsoul:admin/give_souls` - Give souls to a player
+- `/execute as <player> run function tgsoul:admin/revive_player` - Revive a player
+- `/function tgsoul:admin/set_max_souls` - Reset max souls to default (10)
+- `/function tgsoul:admin/toggle_config` - Toggle PvP-only vs all-death soul loss
 
 ## Configuration
 
-Edit the values in `data/tgsoul/functions/load.mcfunction` to configure:
+The datapack uses scoreboard values for configuration. You can modify these in `data/tgsoul/functions/load.mcfunction`:
 
-- `#max_souls` - Maximum souls per player (default: 10)
-- `#starting_souls` - Starting souls for new players (default: 3)
-- `#drop_on_mob_death` - Whether souls drop on mob deaths (0=PvP only, 1=all deaths)
+```mcfunction
+# Configuration values (matching plugin defaults)
+scoreboard players set #max_souls tgsoul.config 10
+scoreboard players set #starting_souls tgsoul.config 3
+scoreboard players set #drop_on_mob_death tgsoul.config 0  # 0=PvP only, 1=all deaths
+scoreboard players set #allow_revive tgsoul.config 1       # 1=enabled, 0=disabled
+scoreboard players set #hud_enabled tgsoul.config 1        # 1=enabled, 0=disabled
+scoreboard players set #effects_enabled tgsoul.config 1    # 1=enabled, 0=disabled
+```
 
-## Crafting
+## Crafting Recipes
 
-### Revival Token Recipe
+### Revival Token Recipe (from plugin config)
 ```
 [Paper] [Soul] [Paper]
 [Soul]  [Star] [Soul]
@@ -53,19 +72,35 @@ Edit the values in `data/tgsoul/functions/load.mcfunction` to configure:
 ```
 
 Where:
-- Soul = Ghast Tear with soul NBT data
-- Star = Nether Star
+- Soul = Ghast Tear (any ghast tear works in datapack)
+- Star = Nether Star  
 - Block = Netherite Block
 
-## Limitations
+## Sounds & Effects (from Plugin Config)
 
-Due to datapack limitations compared to plugins:
+- **Revival Sound**: `block.end_portal.spawn`
+- **Withdraw Sound**: `block.glass.break` 
+- **Gain Sound**: `entity.ender_dragon.growl`
+- **Lose Sound**: `entity.wither.spawn`
 
-1. **NBT Handling**: Soul ownership is simplified - full NBT manipulation would require more complex systems
-2. **Item Detection**: Right-click detection is limited - uses selection-based detection instead
-3. **Player Data**: Uses scoreboards instead of persistent file storage
-4. **Permissions**: No permission system - all players can use basic functions
-5. **GUI**: No custom GUIs - uses chat-based interfaces
+## Advancements
+
+- **First Soul**: Start your soul journey
+- **Soul Survivor**: Survive with only 1 soul
+- **Soul Master**: Reach maximum souls (10)
+- **Soul Savior**: Revive another player
+
+## Limitations vs Plugin
+
+Due to datapack constraints:
+
+1. **Item Ownership**: Simplified soul item system (any ghast tear can be consumed)
+2. **Right-Click Detection**: Limited to selection-based detection
+3. **Inventory Management**: Players must manually remove consumed items
+4. **Ban System**: Uses spectator mode instead of actual banning
+5. **Permissions**: No permission system - all players can use functions
+6. **Data Persistence**: Uses scoreboards (resets on world reload)
+7. **GUI**: Chat-based interfaces instead of custom GUIs
 
 ## Compatibility
 
@@ -76,8 +111,8 @@ Due to datapack limitations compared to plugins:
 
 ## Credits
 
-Original TGSoul Plugin by Prabin (Techinpoint Gamerz)
-Datapack conversion maintains core functionality while adapting to datapack limitations.
+**Original Plugin**: TGSoul by Prabin (Techinpoint Gamerz)
+- YouTube: www.youtube.com/@TechinpointGamerz
+- Website: https://techinpointgamerz.netlify.app
 
-YouTube: www.youtube.com/@TechinpointGamerz
-Website: https://techinpointgamerz.netlify.app
+**Datapack Conversion**: Maintains core functionality while adapting to datapack limitations.

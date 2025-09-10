@@ -10,7 +10,7 @@ execute at @s run function tgsoul:items/drop_soul_item
 execute if score @s tgsoul.souls matches 0 run function tgsoul:player/no_souls_left
 
 # Display message if player still has souls
-execute if score @s tgsoul.souls matches 1.. run tellraw @s [{"text":"[TGSoul] ","color":"gold"},{"text":"You lost a soul! (","color":"red"},{"score":{"name":"@s","objective":"tgsoul.souls"},"color":"gold"},{"text":" remaining)","color":"red"}]
+execute if score @s tgsoul.souls matches 1.. run tellraw @a [{"text":"[TGSoul] ","color":"gold"},{"selector":"@s","color":"red"},{"text":" died and lost a soul! (","color":"red"},{"score":{"name":"@s","objective":"tgsoul.souls"},"color":"gold"},{"text":" souls remaining)","color":"red"}]
 
-# Play lose effect
-execute at @s run function tgsoul:effects/lose_effect
+# Play lose effect if effects are enabled
+execute if score #effects_enabled tgsoul.config matches 1 at @s run function tgsoul:effects/lose_effect

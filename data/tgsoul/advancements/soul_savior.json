@@ -18,10 +18,7 @@
     "revive_player": {
       "trigger": "minecraft:placed_block",
       "conditions": {
-        "block": "minecraft:beacon",
-        "item": {
-          "nbt": "{tgsoul_item:\"revival_token\"}"
-        }
+        "block": "minecraft:beacon"
       }
     }
   },

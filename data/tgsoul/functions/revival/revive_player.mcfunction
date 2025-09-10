@@ -13,10 +13,10 @@ gamemode survival @s
 tp @s ~ ~1 ~
 
 # Display revival message
-tellraw @s [{"text":"[TGSoul] ","color":"gold"},{"text":"You have been revived! You now have ","color":"green"},{"score":{"name":"@s","objective":"tgsoul.souls"},"color":"gold"},{"text":" souls.","color":"green"}]
+tellraw @s [{"text":"[TGSoul] ","color":"gold"},{"text":"You have been successfully revived! You now have ","color":"green"},{"score":{"name":"@s","objective":"tgsoul.souls"},"color":"gold"},{"text":" souls.","color":"green"}]
 
 # Announce to all players
 tellraw @a [{"text":"[TGSoul] ","color":"gold"},{"selector":"@s","color":"green"},{"text":" has been revived!","color":"green"}]
 
-# Play revival effects
-function tgsoul:effects/gain_effect
+# Play revival effects if enabled
+execute if score #effects_enabled tgsoul.config matches 1 run function tgsoul:effects/gain_effect

@@ -6,3 +6,6 @@ tellraw @s [{"text":"• ","color":"gray"},{"text":"/function tgsoul:commands/so
 tellraw @s [{"text":"• ","color":"gray"},{"text":"/function tgsoul:commands/soul_top","color":"aqua"},{"text":" - View top players by souls","color":"gray"}]
 tellraw @s [{"text":"• ","color":"gray"},{"text":"Right-click soul items to consume them","color":"yellow"}]
 tellraw @s [{"text":"• ","color":"gray"},{"text":"Craft Revival Tokens to revive players","color":"yellow"}]
+tellraw @s [{"text":"Admin Commands:","color":"red","bold":true}]
+tellraw @s [{"text":"• ","color":"gray"},{"text":"/function tgsoul:admin/give_souls","color":"red"},{"text":" - Give souls (run as target)","color":"gray"}]
+tellraw @s [{"text":"• ","color":"gray"},{"text":"/function tgsoul:admin/revive_player","color":"red"},{"text":" - Revive player (run as target)","color":"gray"}]

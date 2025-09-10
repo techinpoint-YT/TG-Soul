@@ -10,8 +10,7 @@
       "item": "minecraft:paper"
     },
     "S": {
-      "item": "minecraft:ghast_tear",
-      "nbt": "{tgsoul_item:\"soul\"}"
+      "item": "minecraft:ghast_tear"
     },
     "N": {
       "item": "minecraft:nether_star"
@@ -22,7 +21,6 @@
   },
   "result": {
     "item": "minecraft:beacon",
-    "count": 1,
-    "nbt": "{display:{Name:'{\"text\":\"Revival Token\",\"color\":\"gold\",\"italic\":false}',Lore:['{\"text\":\"Place to revive a player\",\"color\":\"gray\",\"italic\":false}','{\"text\":\"Crafted with 3 souls\",\"color\":\"dark_gray\",\"italic\":false}']},tgsoul_item:\"revival_token\",Enchantments:[{id:\"minecraft:unbreaking\",lvl:1s}],HideFlags:1}"
+    "count": 1
   }
 }

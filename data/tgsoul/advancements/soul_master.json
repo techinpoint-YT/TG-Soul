@@ -8,7 +8,7 @@
       "color": "gold"
     },
     "description": {
-      "text": "Reach maximum souls"
+      "text": "Reach maximum souls (10)"
     },
     "frame": "challenge",
     "show_toast": true,

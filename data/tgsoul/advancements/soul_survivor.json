@@ -4,27 +4,25 @@
       "item": "minecraft:ghast_tear"
     },
     "title": {
-      "text": "First Soul",
-      "color": "green"
+      "text": "Soul Survivor",
+      "color": "red"
     },
     "description": {
-      "text": "Start your soul journey"
+      "text": "Survive with only 1 soul remaining"
     },
-    "frame": "task",
+    "frame": "goal",
     "show_toast": true,
     "announce_to_chat": false
   },
   "criteria": {
-    "first_soul": {
+    "one_soul": {
       "trigger": "minecraft:tick",
       "conditions": {
         "player": {
           "type": "minecraft:player",
           "player": {
             "scores": {
-              "tgsoul.souls": {
-                "min": 1
-              }
+              "tgsoul.souls": 1
             }
           }
         }
@@ -32,6 +30,6 @@
     }
   },
   "rewards": {
-    "experience": 10
+    "experience": 25
   }
 }
